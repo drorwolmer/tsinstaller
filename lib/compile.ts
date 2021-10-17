@@ -62,7 +62,7 @@ export const saveDockerImagesToFile = async (
   }
 };
 
-export const getGitComit = () => {
+export const getGitCommit = () => {
   try {
     const commit = child_process
       .execFileSync("git", ["log", "-1", "--format=%H"], { cwd: __dirname })
@@ -70,6 +70,8 @@ export const getGitComit = () => {
       .trim();
     return commit;
   } catch (error) {
+    console.error("Cannot get git commit");
+    console.error(error);
     return "??";
   }
 };
