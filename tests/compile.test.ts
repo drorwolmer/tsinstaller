@@ -1,8 +1,9 @@
 import * as fs from "fs";
 import * as crypto from "crypto";
-import { SelfExtractingInstaller } from "../lib/compile";
+import { SelfExtractingInstaller, getAllDockerImages } from "../lib/compile";
 import { getEntry, getCommit } from "../lib/utils";
 import { spawnBashSelfExtractAsync } from "../lib/subprocess";
+import * as subprocess from "../lib/subprocess";
 
 const baseFile = "/tmp/base";
 const outputFile = "/tmp/compile_output";
@@ -14,8 +15,8 @@ const cleanupFiles = () => {
   fs.rmSync(outputFile, { force: true });
 };
 describe("Compiler tests", () => {
-  //   beforeEach(cleanupFiles);
-  //   afterEach(cleanupFiles);
+  beforeEach(cleanupFiles);
+  afterEach(cleanupFiles);
 
   it("Compiler sanity", async () => {
     // ------------------------------------------------------------------------
@@ -65,5 +66,79 @@ describe("Compiler tests", () => {
     );
     expect(res2.status).toEqual(0);
     expect(res2.stdout).toEqual("HELLO BINARY");
+
+    const res3 = await spawnBashSelfExtractAsync(
+      "head -c 3 $FILE$ | tail -c 2",
+      "message",
+      undefined,
+      outputFile
+    );
+    expect(res3.status).toEqual(0);
+    expect(res3.stdout).toEqual("EL");
+  });
+
+  it("gets correct docker images [single docker-compose.yml file]", async () => {
+    const spawnMock = jest
+      .spyOn(subprocess, "spawnAsync")
+      .mockImplementation(async () => {
+        return {
+          status: 0,
+          stdout: `
+        services:
+          foo:
+            image: foo/bar:baz
+          bar:
+            image: foo/bar:baz
+          nginx:
+            image: nginx:0.1.2
+        `,
+          cmdline: "",
+          stderr: "",
+        };
+      });
+
+    const allImages = await getAllDockerImages(__dirname);
+
+    expect(allImages).toEqual(["foo/bar:baz", "nginx:0.1.2"]);
+    expect(spawnMock).toBeCalledWith("docker-compose", ["config"], {
+      cwd: __dirname,
+    });
+  });
+
+  it("gets correct docker images [mutliple docker-compose.yml file]", async () => {
+    const spawnMock = jest
+      .spyOn(subprocess, "spawnAsync")
+      .mockImplementation(async () => {
+        return {
+          status: 0,
+          stdout: `
+        services:
+          foo:
+            image: foo/bar:baz
+          bar:
+            image: foo/bar:baz
+          nginx:
+            image: nginx:0.1.2
+          traefil:
+            image: traefik:4.2.0
+        `,
+          cmdline: "",
+          stderr: "",
+        };
+      });
+
+    const allImages = await getAllDockerImages(__dirname, [
+      "docker-compose.yml",
+      "docker-compose.prod.yml",
+    ]);
+
+    expect(allImages).toEqual(["foo/bar:baz", "nginx:0.1.2", "traefik:4.2.0"]);
+    expect(spawnMock).toBeCalledWith(
+      "docker-compose",
+      ["-f docker-compose.yml", "-f docker-compose.prod.yml", "config"],
+      {
+        cwd: __dirname,
+      }
+    );
   });
 });

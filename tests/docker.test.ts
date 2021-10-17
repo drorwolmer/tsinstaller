@@ -95,6 +95,47 @@ describe("Docker tests", () => {
     expect(getDockerVersionMock).toBeCalled();
   });
 
+  it("Loads docker images correctly", async () => {
+    const spawnBashSelfExtractAsyncMock = jest
+      .spyOn(subprocess, "spawnBashSelfExtractAsync")
+      .mockImplementation(async () => {
+        return {
+          stdout: "Loaded Image: foo/bar:0.1\nLoaded Image: baz/kuku:4.2.0\n",
+          status: 0,
+          stderr: "",
+          cmdline: "",
+        };
+      });
+
+    const res = await docker.loadDockerImages("docker images")();
+    expect(spawnBashSelfExtractAsyncMock).toBeCalledWith(
+      "docker load -i",
+      "docker images"
+    );
+    expect(res.success).toBeTruthy();
+    expect(res.data).toEqual(["baz/kuku:4.2.0", "foo/bar:0.1"]);
+  });
+
+  it("Loads docker images fails", async () => {
+    const spawnBashSelfExtractAsyncMock = jest
+      .spyOn(subprocess, "spawnBashSelfExtractAsync")
+      .mockImplementation(async () => {
+        return {
+          stdout: "",
+          status: 1,
+          stderr: "SOME ERROR",
+          cmdline: "",
+        };
+      });
+
+    const res = await docker.loadDockerImages("docker images")();
+    expect(spawnBashSelfExtractAsyncMock).toBeCalledWith(
+      "docker load -i",
+      "docker images"
+    );
+    expect(res.success).toBeFalsy();
+  });
+
   beforeEach(() => {
     jest.clearAllMocks();
   });

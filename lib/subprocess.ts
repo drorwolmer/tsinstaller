@@ -54,6 +54,14 @@ export const spawnBashSelfExtractAsync = async (
   installerFile = INSTALLER_FILE
 ) => {
   const entry = getEntry(name, installerFile);
-  const cmd = `${command} <(tail -c +${entry.offset} ${installerFile} | head -c ${entry.size})`;
+  const fdStr = `<(tail -c +${entry.offset} ${installerFile} | head -c ${entry.size})`;
+
+  let cmd: string;
+  if (command.includes("$FILE$")) {
+    cmd = command.replace("$FILE$", fdStr);
+  } else {
+    cmd = `${command} ${fdStr}`;
+  }
+
   return spawnBashAsync(cmd, options);
 };

@@ -70,6 +70,24 @@ describe("OS TESTS", () => {
     expect(spawnAsyncMock).toBeCalled();
   });
 
+  it("Verifies root succeeds when root", async () => {
+    const isRootMock = jest.spyOn(os, "isRoot").mockReturnValue(true);
+
+    const res = await os.verifyRoot();
+
+    expect(res.success).toBeTruthy();
+    expect(isRootMock).toBeCalled();
+  });
+
+  it("Verifies root fails when not root", async () => {
+    const isRootMock = jest.spyOn(os, "isRoot").mockReturnValue(false);
+
+    const res = await os.verifyRoot();
+
+    expect(res.success).toBeFalsy();
+    expect(isRootMock).toBeCalled();
+  });
+
   it("Succeeds if docker service is not enabled", async () => {
     const getOsPlatformMock = jest
       .spyOn(os, "getOsPlatform")

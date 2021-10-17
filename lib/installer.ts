@@ -1,7 +1,6 @@
 import ora from "ora";
-import { getCommit, INSTALLER_FILE } from "./utils";
 import { cyan, bold, green, red } from "cli-color";
-import { Step } from "./types";
+import { Step, StepResult } from "./types";
 import logSymbols from "log-symbols";
 import { InstallerStepFn } from "./types";
 
@@ -19,8 +18,17 @@ const step = async (title: string, f: InstallerStepFn) => {
     color: "white",
   }).start();
 
-  //  TODO(DROR): should catch expections
-  const res = await f();
+  let res: StepResult<any>;
+  try {
+    res = await f();
+  } catch (error) {
+    res = {
+      success: false,
+      errorDescription: `${error}`,
+      errorTitle: "Failed",
+      data: error,
+    };
+  }
 
   if (res.success) {
     spinner.stopAndPersist({
@@ -37,7 +45,10 @@ const step = async (title: string, f: InstallerStepFn) => {
   return res;
 };
 
-export const startInstaller = async (steps: Step[]) => {
+export const startInstaller = async (steps: Step[], header?: string) => {
+  if (header) {
+    console.info(header);
+  }
 
   for (const { title, f } of steps) {
     const res = await step(title, f);

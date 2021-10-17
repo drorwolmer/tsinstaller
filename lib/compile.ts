@@ -24,11 +24,11 @@ export const getAllDockerImages = async (
   composeFiles?: string[]
 ) => {
   // Allow the user to specify docker-compose.yml files
-  const composeFilesFlag = composeFiles?.map((v) => `-f ${v}`).join(" ") || "";
+  const composeFilesFlag = composeFiles?.map((v) => `-f ${v}`) || [];
 
   const { stdout, stderr, status } = await spawnAsync(
     "docker-compose",
-    [composeFilesFlag, `config`],
+    composeFilesFlag.concat([`config`]),
     { cwd: projectDirectory }
   );
 
