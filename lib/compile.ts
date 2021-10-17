@@ -52,7 +52,6 @@ export const saveDockerImagesToFile = async (
   composeFiles?: string[]
 ) => {
   const allImages = await getAllDockerImages(projectDirectory, composeFiles);
-  // const allImages = ["bash:latest", "hello-world:latest"];
 
   let res = await spawnBashAsync(
     `docker save ${allImages.join(" ")} | gzip > ${outputFile}`
@@ -60,6 +59,18 @@ export const saveDockerImagesToFile = async (
   if (res.status !== 0) {
     console.error(res);
     throw new Error("Could not save images");
+  }
+};
+
+export const getGitComit = () => {
+  try {
+    const commit = child_process
+      .execFileSync("git", ["log", "-1", "--format=%H"], { cwd: __dirname })
+      .toString()
+      .trim();
+    return commit;
+  } catch (error) {
+    return "??";
   }
 };
 
@@ -107,23 +118,9 @@ export class SelfExtractingInstaller {
     }
   }
 
-  getGitComit = () => {
-    try {
-      const commit = child_process
-        .execFileSync("git", ["log", "-1", "--format=%H"], { cwd: __dirname })
-        .toString()
-        .trim();
-      return commit;
-    } catch (error) {
-      return "??";
-    }
-  };
-
   compile() {
-    const commit = this.getGitComit();
     const entriesString = JSON.stringify({
       entries: this.entries,
-      commit,
     });
     const entriesLengthPadded = `${entriesString.length}`.padStart(4, "0");
     fs.appendFileSync(this.outputFile, entriesString);

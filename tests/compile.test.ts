@@ -1,7 +1,7 @@
 import * as fs from "fs";
 import * as crypto from "crypto";
 import { SelfExtractingInstaller, getAllDockerImages } from "../lib/compile";
-import { getEntry, getCommit } from "../lib/utils";
+import { getEntry } from "../lib/utils";
 import { spawnBashSelfExtractAsync } from "../lib/subprocess";
 import * as subprocess from "../lib/subprocess";
 

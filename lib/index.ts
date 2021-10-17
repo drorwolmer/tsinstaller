@@ -5,3 +5,4 @@ export * as fs from "./fs";
 export * as network from "./network";
 export * as installer from "./installer";
 export * as compile from "./compile";
+export * as utils from "./utils";
