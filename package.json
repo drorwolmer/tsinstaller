@@ -1,0 +1,45 @@
+{
+  "name": "tsinstaller",
+  "version": "0.0.1",
+  "description": "Nice installer written in TypeScript",
+  "scripts": {
+    "build": "tsc",
+    "test": "jest",
+    "postinstall": "tsc"
+  },
+  "main": "dist/lib/index.js",
+  "typings": "dist/lib/index.d.ts",
+  "engines": {
+    "node": "^12.20.0 || ^14.13.1 || >=16.0.0"
+  },
+  "bin": {
+    "compile": "scripts/compile.ts"
+  },
+  "author": "Haminator",
+  "license": "MIT",
+  "private": true,
+  "dependencies": {
+    "@types/cli-color": "^2.0.1",
+    "@types/cli-table": "^0.3.0",
+    "@types/jest": "^27.0.2",
+    "@types/node": "^16.10.9",
+    "@types/semver": "^7.3.8",
+    "axios": "^0.23.0",
+    "cli-color": "^2.0.0",
+    "cli-table": "^0.3.6",
+    "esbuild": "^0.13.5",
+    "jest": "^27.2.5",
+    "log-symbols": "4.1.0",
+    "ora": "5.4.1",
+    "pkg": "^5.3.3",
+    "semver": "^7.3.5",
+    "ts-jest": "^27.0.5",
+    "ts-node": "^10.3.0",
+    "typescript": "^4.4.4"
+  },
+  "devDependencies": {
+    "eslint": "^8.0.1",
+    "eslint-config-prettier": "^8.3.0",
+    "prettier": "2.4.1"
+  }
+}
