@@ -5,5 +5,8 @@
   "license": "MIT",
   "dependencies": {
     "tsinstaller": "https://github.com/drorwolmer/tsinstaller#0.0.1"
+  },
+  "devDependencies": {
+    "@types/node": "^16.11.1"
   }
 }
