@@ -27,10 +27,10 @@ jobs:
       - name: yarn install
         run: yarn install
       - name: test
-        run: yarn test
+        run: yarn jest --collectCoverage
       - name: yarn install example_project
         run: yarn install
         working-directory: ./example_project/
       - name: yarn test example_project
-        run: yarn test
+        run: yarn jest --collectCoverage
         working-directory: ./example_project/
