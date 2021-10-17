@@ -13,12 +13,12 @@ describe("fs tests", () => {
       .mockImplementation(async (...args) => {
         return {
           diskPath: args[0],
-          free: 8 * 1024 * 1024,
-          size: 100 * 1024 * 1024,
+          free: 8 * 1024 * 1024 * 1024,
+          size: 100 * 1024 * 1024 * 1024,
         };
       });
 
-    const res = await verifyDiskSpace(10 * 1024 * 1024)();
+    const res = await verifyDiskSpace(10 * 1024 * 1024 * 1024)();
     expect(res.success).toBeFalsy();
     expect(res.errorTitle).toEqual("Insufficient disk space");
     expect(res.errorDescription).toEqual(
@@ -26,7 +26,7 @@ describe("fs tests", () => {
     );
     expect(res.data).toEqual({
       availableGB: 8,
-      diskSpace: { diskPath: "/", free: 8388608, size: 104857600 },
+      diskSpace: { diskPath: "/", free: 8589934592, size: 107374182400 },
       requiredGB: 10,
     });
     expect(checkDiskSpaceMock).toBeCalledWith("/");
@@ -43,19 +43,19 @@ describe("fs tests", () => {
       .mockImplementation(async (...args) => {
         return {
           diskPath: args[0],
-          free: 80 * 1024 * 1024,
-          size: 100 * 1024 * 1024,
+          free: 80 * 1024 * 1024 * 1024,
+          size: 100 * 1024 * 1024 * 1024,
         };
       });
 
-    const res = await verifyDiskSpace(20 * 1024 * 1024)();
+    const res = await verifyDiskSpace(20 * 1024 * 1024 * 1024)();
     expect(res.success).toBeTruthy();
     expect(res.data).toEqual({
       availableGB: 80,
       diskSpace: {
         diskPath: "/var/lib/docker",
-        free: 83886080,
-        size: 104857600,
+        free: 85899345920,
+        size: 107374182400,
       },
       requiredGB: 20,
     });

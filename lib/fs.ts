@@ -20,8 +20,8 @@ export const verifyDiskSpace =
       diskSpace = await checkDiskSpace("/");
     }
 
-    const requiredGB = minSizeBytes / (1024 * 1024);
-    const availableGB = diskSpace.free / (1024 * 1024);
+    const requiredGB = minSizeBytes / (1024 * 1024 * 1024);
+    const availableGB = diskSpace.free / (1024 * 1024 * 1024);
 
     const data = {
       diskSpace,
