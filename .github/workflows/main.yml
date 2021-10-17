@@ -27,10 +27,13 @@ jobs:
       - name: yarn install
         run: yarn install
       - name: test
-        run: yarn jest --collectCoverage
+        run: yarn jest --collectCoverage --json --outputFile=jest-output.json
       - name: yarn install example_project
         run: yarn install
         working-directory: ./example_project/
       - name: yarn test example_project
-        run: yarn jest --collectCoverage
+        run: yarn jest --collectCoverage --json --outputFile=jest-output.json
         working-directory: ./example_project/
+      - name: JEST Report
+        uses: RedaktionsNetzwerk-Deutschland/action-jest-reporter@v1.0.0
+          
