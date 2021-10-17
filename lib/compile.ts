@@ -123,6 +123,7 @@ export class SelfExtractingInstaller {
   compile() {
     const entriesString = JSON.stringify({
       entries: this.entries,
+      commit: getGitCommit(),
     });
     const entriesLengthPadded = `${entriesString.length}`.padStart(4, "0");
     fs.appendFileSync(this.outputFile, entriesString);

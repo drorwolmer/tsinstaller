@@ -26,7 +26,12 @@ const getEntries = (installerFilePath = INSTALLER_FILE) => {
 
   fs.close(fd);
 
-  return JSON.parse(buffer.toString()) as { entries: Entry[] };
+  return JSON.parse(buffer.toString()) as { entries: Entry[]; commit: string };
+};
+
+export const getCommitFromInstaller = (installerFilePath = INSTALLER_FILE) => {
+  const { commit } = getEntries(installerFilePath);
+  return commit;
 };
 
 export const getEntry = (name: string, installerFilePath = INSTALLER_FILE) => {
