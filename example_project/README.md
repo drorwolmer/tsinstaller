@@ -1,9 +1,17 @@
 # Example `tsinstaller` project
 
 ## Testing
+```sh
 
-`yarn jest`
+yarn jest
+```
 
 ## Building
 
-`yarn compile installer.ts`
+```sh
+# Pull docker images
+docker-compose pull
+
+# Build a single executable
+yarn compile installer.ts
+```
