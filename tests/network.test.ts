@@ -1,5 +1,12 @@
-import { getUrlStatus, RequiredUrl, verifyAllUrls } from "../lib/network";
-import { AxiosError } from "axios";
+import {
+  getUrlStatus,
+  RequiredUrl,
+  UrlResult,
+  verifyAllUrls,
+  verifyUrlReady,
+} from "../lib/network";
+import * as network from "../lib/network";
+import axios, { AxiosError } from "axios";
 
 describe("URL tests", () => {
   it("getUrlStatus(https://google.com) returns 200", async () => {
@@ -124,11 +131,10 @@ describe("URL tests", () => {
         url: "https://expired.badssl.com",
         expectedStatus: [404],
       },
-      // This domain is always invalid now...
-      // {
-      //   url: "https://untrusted-root.badssl.com/",
-      //   expectedStatus: [404],
-      // },
+      {
+        url: "https://untrusted-root.badssl.com/",
+        expectedStatus: [404],
+      },
     ];
 
     const res = await verifyAllUrls(requiredUrls)();
@@ -157,13 +163,113 @@ describe("URL tests", () => {
         requiredUrl: requiredUrls[2],
         axiosError: expect.anything(),
       },
-      // {
-      //   success: false,
-      //   status: undefined,
-      //   text: "self signed certificate in certificate chain",
-      //   requiredUrl: requiredUrls[3],
-      //   axiosError: expect.anything(),
-      // },
+      {
+        success: false,
+        status: undefined,
+        text: "self signed certificate in certificate chain",
+        requiredUrl: requiredUrls[3],
+        axiosError: expect.anything(),
+      },
     ]);
+  });
+
+  it("verifyUrlReady succeeds if URL returns 200", async () => {
+    const res = await verifyUrlReady("https://google.com", 3)();
+    expect(res).toEqual({
+      success: true,
+      data: {
+        success: true,
+        requiredUrl: { url: "https://google.com", expectedStatus: [200] },
+        status: 200,
+        text: "OK",
+      },
+      successText: "OK",
+    });
+  });
+
+  it("verifyUrlReady fails if timeout elapsed", async () => {
+    const verifyAllUrlsMock = jest
+      .spyOn(network, "verifyAllUrls")
+      .mockImplementation(
+        () => () =>
+          Promise.resolve({
+            success: false,
+            data: [
+              {
+                requiredUrl: {
+                  url: "https://1.4.2.2",
+                  expectedStatus: [200],
+                },
+                success: false,
+                text: "something broke",
+              },
+            ],
+          })
+      );
+
+    const res = await verifyUrlReady("https://1.4.2.2", 1)();
+    expect(res).toEqual({
+      success: false,
+      data: {
+        success: false,
+        requiredUrl: { url: "https://1.4.2.2", expectedStatus: [200] },
+        text: "something broke",
+      },
+      errorDescription: "Waited for 1 seconds",
+      errorTitle: "Timed out waiting for https://1.4.2.2",
+    });
+
+    expect(verifyAllUrlsMock).toBeCalledTimes(1);
+  });
+
+  it("verifyUrlReady retries", async () => {
+    let i = 0;
+    const verifyAllUrlsMock = jest
+      .spyOn(network, "verifyAllUrls")
+      .mockImplementation(() => () => {
+        i += 1;
+        if (i === 1) {
+          return Promise.resolve({
+            success: false,
+            data: [
+              {
+                requiredUrl: {
+                  url: "https://1.4.2.2",
+                  expectedStatus: [200],
+                },
+                success: false,
+                text: "something broke",
+              },
+            ],
+          });
+        } else {
+          return Promise.resolve({
+            success: true,
+            data: [
+              {
+                requiredUrl: {
+                  url: "https://1.4.2.2",
+                  expectedStatus: [200],
+                },
+                success: true,
+                text: "OK",
+              },
+            ],
+          });
+        }
+      });
+
+    const res = await verifyUrlReady("https://1.4.2.2", 3)();
+    expect(res).toEqual({
+      success: true,
+      data: {
+        success: true,
+        requiredUrl: { url: "https://1.4.2.2", expectedStatus: [200] },
+        text: "OK",
+      },
+      successText: "OK",
+    });
+
+    expect(verifyAllUrlsMock).toBeCalledTimes(2);
   });
 });

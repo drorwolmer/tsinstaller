@@ -134,3 +134,37 @@ export const loadDockerImages =
       data: loadedImages,
     };
   };
+
+export const dockerComposeUp =
+  (
+    projectDirectory: string,
+    composeFiles?: string[] | undefined
+  ): InstallerStepFn<{
+    stdout: string;
+    stderr: string;
+    status: number;
+  }> =>
+  async () => {
+    const composeFilesFlag = composeFiles?.map((v) => `-f ${v}`) || [];
+
+    const { stdout, stderr, status } = await spawnAsync(
+      "docker-compose",
+      composeFilesFlag.concat(["up", "-d"]),
+      { cwd: projectDirectory }
+    );
+
+    if (status !== 0) {
+      return {
+        success: false,
+        errorTitle: "Failed to bring up containers",
+        errorDescription: stderr,
+        data: { stdout, stderr, status },
+      };
+    }
+
+    return {
+      success: true,
+      successText: "OK",
+      data: { stdout, stderr, status },
+    };
+  };

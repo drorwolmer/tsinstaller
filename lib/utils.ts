@@ -46,3 +46,7 @@ export const getEntry = (name: string, installerFilePath = INSTALLER_FILE) => {
 export const zip = <T, T2>(a: T[], b: T2[]): [T, T2][] => {
   return a.map((k, i) => [k, b[i]]);
 };
+
+export const sleep = (ms: number) => {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+};

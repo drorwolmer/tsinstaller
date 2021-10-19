@@ -1,6 +1,6 @@
 import axios, { AxiosError } from "axios";
 import { InstallerStepFn } from "./types";
-import { zip } from "./utils";
+import { sleep, zip } from "./utils";
 import Table from "cli-table";
 import clc from "cli-color";
 
@@ -120,4 +120,48 @@ export const verifyAllUrls =
       errorTitle: "Failed validating network prerequisites",
       errorDescription: table.toString(),
     };
+  };
+
+export const verifyUrlReady =
+  (
+    url: string,
+    timeoutSeconds: number
+  ): InstallerStepFn<UrlResult | undefined> =>
+  async (spinner) => {
+    const startTime = new Date();
+    let urlResult: UrlResult | undefined = undefined;
+    while (true) {
+      const elapsedSeconds =
+        (new Date().getTime() - startTime.getTime()) / 1000;
+
+      if (elapsedSeconds > timeoutSeconds) {
+        return {
+          success: false,
+          errorTitle: `Timed out waiting for ${url}`,
+          errorDescription: `Waited for ${timeoutSeconds} seconds`,
+          data: urlResult,
+        };
+      }
+
+      const res = await verifyAllUrls([
+        {
+          url,
+          expectedStatus: [200],
+        },
+      ])();
+
+      if (res.data) {
+        urlResult = res.data[0];
+      }
+
+      if (res.success) {
+        return {
+          success: true,
+          data: urlResult,
+          successText: "OK",
+        };
+      }
+
+      await sleep(2000);
+    }
   };

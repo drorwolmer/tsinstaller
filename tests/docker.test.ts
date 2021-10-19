@@ -1,4 +1,8 @@
-import { getDockerComposeVersion, getDockerVersion } from "../lib/docker";
+import {
+  dockerComposeUp,
+  getDockerComposeVersion,
+  getDockerVersion,
+} from "../lib/docker";
 import * as docker from "../lib/docker";
 import * as semver from "semver";
 import * as subprocess from "../lib/subprocess";
@@ -134,6 +138,94 @@ describe("Docker tests", () => {
       "docker images"
     );
     expect(res.success).toBeFalsy();
+  });
+
+  it("dockerComposeUp sanity", async () => {
+    const spawnAsyncMock = jest
+      .spyOn(subprocess, "spawnAsync")
+      .mockImplementation(async () => {
+        return {
+          cmdline: "docker-compose up -d",
+          status: 0,
+          stderr: "",
+          stdout: "OK",
+        };
+      });
+
+    const res = await dockerComposeUp("/tmp/foo")();
+
+    expect(res.success).toBeTruthy();
+    expect(res.successText).toEqual("OK");
+    expect(res.data).toEqual({ status: 0, stderr: "", stdout: "OK" });
+
+    expect(spawnAsyncMock).toBeCalledWith("docker-compose", ["up", "-d"], {
+      cwd: "/tmp/foo",
+    });
+  });
+
+  it("dockerComposeUp sanity, multiple compose files", async () => {
+    const spawnAsyncMock = jest
+      .spyOn(subprocess, "spawnAsync")
+      .mockImplementation(async () => {
+        return {
+          cmdline: "docker-compose up -d",
+          status: 0,
+          stderr: "",
+          stdout: "OK",
+        };
+      });
+
+    const res = await dockerComposeUp("/tmp/foo", [
+      "docker-compose.yml",
+      "docker-compose.prod.yml",
+    ])();
+
+    expect(res.success).toBeTruthy();
+    expect(res.successText).toEqual("OK");
+    expect(res.data).toEqual({ status: 0, stderr: "", stdout: "OK" });
+
+    expect(spawnAsyncMock).toBeCalledWith(
+      "docker-compose",
+      ["-f docker-compose.yml", "-f docker-compose.prod.yml", "up", "-d"],
+      {
+        cwd: "/tmp/foo",
+      }
+    );
+  });
+
+  it("dockerComposeUp fails if docker-compose fails", async () => {
+    const spawnAsyncMock = jest
+      .spyOn(subprocess, "spawnAsync")
+      .mockImplementation(async () => {
+        return {
+          cmdline: "docker-compose up -d",
+          status: 1,
+          stderr: "some error",
+          stdout: "",
+        };
+      });
+
+    const res = await docker.dockerComposeUp("/tmp/foo", [
+      "docker-compose.yml",
+      "docker-compose.prod.yml",
+    ])();
+
+    expect(res.success).toBeFalsy();
+    expect(res.errorTitle).toEqual("Failed to bring up containers");
+    expect(res.errorDescription).toEqual("some error");
+    expect(res.data).toEqual({
+      status: 1,
+      stderr: "some error",
+      stdout: "",
+    });
+
+    expect(spawnAsyncMock).toBeCalledWith(
+      "docker-compose",
+      ["-f docker-compose.yml", "-f docker-compose.prod.yml", "up", "-d"],
+      {
+        cwd: "/tmp/foo",
+      }
+    );
   });
 
   beforeEach(() => {
