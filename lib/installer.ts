@@ -20,7 +20,7 @@ const step = async (title: string, f: InstallerStepFn) => {
 
   let res: StepResult<any>;
   try {
-    res = await f();
+    res = await f(spinner);
   } catch (error) {
     res = {
       success: false,

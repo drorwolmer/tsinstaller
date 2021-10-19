@@ -1,3 +1,5 @@
+import { Ora } from "ora";
+
 export type Entry = {
   offset: number;
   size: number;
@@ -13,7 +15,9 @@ export type StepResult<T> = {
   data?: T;
 };
 
-export type InstallerStepFn<T = any> = () => Promise<StepResult<T>>;
+export type InstallerStepFn<T = any> = (
+  spinner?: Ora
+) => Promise<StepResult<T>>;
 
 export type Step = {
   title: string;
