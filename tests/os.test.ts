@@ -119,7 +119,7 @@ describe("OS TESTS", () => {
 
     const res = await verifyMinCpuRequirements(8)();
     expect(res.success).toBeFalsy();
-    expect(res.errorTitle).toEqual("This system doesnt meet minimum requirements");
+    expect(res.errorTitle).toEqual("This system does not meet minimum requirements");
     expect(getOsCpusMock).toBeCalled();
   });
 
@@ -131,7 +131,30 @@ describe("OS TESTS", () => {
     const res = await verifyMinMemoryRequirements(8)();
 
     expect(res.success).toBeFalsy();
-    expect(res.errorTitle).toEqual("This system doesnt meet minimum requirements");
+    expect(res.errorTitle).toEqual("This system does not meet minimum requirements");
+    expect(getMemoryMock).toBeCalled();
+  });
+
+  it("Succeeds if cpu count meet requirements", async () => {
+    const getOsCpusMock = jest
+      .spyOn(os, "cpuCores")
+      .mockReturnValue(10);
+
+    const res = await verifyMinCpuRequirements(8)();
+    expect(res.success).toBeTruthy();
+    expect(res.successText).toEqual("OK");
+    expect(getOsCpusMock).toBeCalled();
+  });
+
+  it("Succeeds if memory count meet requirements", async () => {
+    const getMemoryMock = jest
+      .spyOn(os, "totalMemoryInGb")
+      .mockReturnValue(10);
+
+    const res = await verifyMinMemoryRequirements(8)();
+
+    expect(res.success).toBeTruthy();
+    expect(res.successText).toEqual("OK");
     expect(getMemoryMock).toBeCalled();
   });
 
