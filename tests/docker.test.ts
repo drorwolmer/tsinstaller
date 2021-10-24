@@ -8,6 +8,10 @@ import * as semver from "semver";
 import * as subprocess from "../lib/subprocess";
 
 describe("Docker tests", () => {
+  beforeEach(() => {
+    jest.restoreAllMocks();
+  });
+
   it("Gets correct docker version [with leading 0]", async () => {
     const spawnAsyncMock = jest
       .spyOn(subprocess, "spawnAsync")
@@ -39,12 +43,30 @@ describe("Docker tests", () => {
       });
 
     const dockerComposeVersion = await getDockerComposeVersion();
-    spawnAsyncMock.mockRestore();
+    expect(spawnAsyncMock).toHaveBeenCalledWith("docker-compose", [
+      "version",
+      "--short",
+    ]);
     expect(dockerComposeVersion).toEqual("1.2.1");
   });
 
   it("Gets correct docker-compose version", async () => {
+    const spawnAsyncMock = jest
+      .spyOn(subprocess, "spawnAsync")
+      .mockImplementation(async () => {
+        return {
+          stdout: "1.29.2\n",
+          status: 0,
+          stderr: "",
+          cmdline: "",
+        };
+      });
+
     const dockerComposeVersion = await getDockerComposeVersion();
+    expect(spawnAsyncMock).toHaveBeenCalledWith("docker-compose", [
+      "version",
+      "--short",
+    ]);
     expect(semver.gt(dockerComposeVersion, "1.29.1")).toBeTruthy();
   });
 
