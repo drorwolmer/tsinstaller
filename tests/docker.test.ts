@@ -55,20 +55,24 @@ describe("Docker tests", () => {
     const res = await docker.verifyDockerVersion("20.10.7")();
 
     expect(res.success).toBeTruthy();
-    expect(res.successText).toEqual("20.10.7");
+    expect(res.successText).toEqual("OK");
+    expect(res.successDebug).toEqual("20.10.7");
+    expect(res.data).toEqual({ dockerVersion: "20.10.7" });
     expect(getDockerVersionMock).toBeCalled();
   });
 
   it("Succeeds if docker-compose version is OK", async () => {
-    const getDockerVersionMock = jest
+    const getDockerComposeVersionMock = jest
       .spyOn(docker, "getDockerComposeVersion")
       .mockImplementation(async () => "1.29.3");
 
     const res = await docker.verifyDockerComposeVersion("1.29.2")();
 
     expect(res.success).toBeTruthy();
-    expect(res.successText).toEqual("1.29.3");
-    expect(getDockerVersionMock).toBeCalled();
+    expect(res.successText).toEqual("OK");
+    expect(res.successDebug).toEqual("1.29.3");
+    expect(res.data).toEqual({ dockerComposeVersion: "1.29.3" });
+    expect(getDockerComposeVersionMock).toBeCalled();
   });
 
   it("Fails if docker version is too low", async () => {
@@ -82,6 +86,7 @@ describe("Docker tests", () => {
     expect(res.errorTitle).toEqual(
       "Docker version 0.1.2 is lower then min version 20.10.7"
     );
+    expect(res.data).toEqual({ dockerVersion: "0.1.2" });
     expect(getDockerVersionMock).toBeCalled();
   });
 
@@ -96,6 +101,7 @@ describe("Docker tests", () => {
     expect(res.errorTitle).toEqual(
       "docker-compose version 1.2.3 is lower then min version 1.29.2"
     );
+    expect(res.data).toEqual({ dockerComposeVersion: "1.2.3" });
     expect(getDockerVersionMock).toBeCalled();
   });
 

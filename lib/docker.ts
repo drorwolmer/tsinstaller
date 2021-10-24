@@ -47,7 +47,9 @@ export const getDockerComposeVersion = async () => {
 };
 
 export const verifyDockerVersion =
-  (minDockerVersion: string): InstallerStepFn =>
+  (
+    minDockerVersion: string
+  ): InstallerStepFn<{ dockerVersion: string | undefined }> =>
   async () => {
     if (!semver.valid(minDockerVersion)) {
       throw new Error("minDockerVersion is invalid");
@@ -58,9 +60,15 @@ export const verifyDockerVersion =
         return {
           success: false,
           errorTitle: `Docker version ${dockerVersion} is lower then min version ${minDockerVersion}`,
+          data: { dockerVersion },
         };
       }
-      return { success: true, successText: dockerVersion };
+      return {
+        success: true,
+        successText: "OK",
+        successDebug: dockerVersion,
+        data: { dockerVersion },
+      };
     } catch (error) {
       let errorDescription = `${error}`;
       if ((error as Error).message.includes("ENOENT")) {
@@ -70,12 +78,15 @@ export const verifyDockerVersion =
         success: false,
         errorTitle: "Could not verify Docker version",
         errorDescription,
+        data: { dockerVersion: undefined },
       };
     }
   };
 
 export const verifyDockerComposeVersion =
-  (minDockerComposeVersion: string): InstallerStepFn =>
+  (
+    minDockerComposeVersion: string
+  ): InstallerStepFn<{ dockerComposeVersion: string | undefined }> =>
   async () => {
     try {
       const dockerComposeVersion = await getDockerComposeVersion();
@@ -83,9 +94,15 @@ export const verifyDockerComposeVersion =
         return {
           success: false,
           errorTitle: `docker-compose version ${dockerComposeVersion} is lower then min version ${minDockerComposeVersion}`,
+          data: { dockerComposeVersion },
         };
       }
-      return { success: true, successText: dockerComposeVersion };
+      return {
+        success: true,
+        successText: "OK",
+        successDebug: dockerComposeVersion,
+        data: { dockerComposeVersion },
+      };
     } catch (error) {
       let errorDescription = `${error}`;
       if ((error as Error).message.includes("ENOENT")) {
@@ -95,6 +112,7 @@ export const verifyDockerComposeVersion =
         success: false,
         errorTitle: "Could not verify docker-compose version",
         errorDescription,
+        data: { dockerComposeVersion: undefined },
       };
     }
   };

@@ -60,7 +60,7 @@ export const untar =
     if (status === 0) {
       return {
         success: true,
-        successText: "Extracted",
+        successText: "OK",
       };
     }
     return {
