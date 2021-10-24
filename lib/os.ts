@@ -15,7 +15,7 @@ export const cpuCores = () => {
 };
 
 export const totalMemoryInGb = () => {
-  return Math.round(totalmem()/1024/1024/1024);
+  return Math.round(totalmem()/(1024*1024*1024));
 };
 
 export const verifyRoot: InstallerStepFn = async () => {
