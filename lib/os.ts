@@ -1,7 +1,6 @@
 import { InstallerStepFn } from "./types";
-import { platform , cpus, totalmem} from "os";
+import { platform, cpus, totalmem } from "os";
 import { spawnAsync } from "./subprocess";
-import { OS_PLATFORM } from "./utils";
 
 // this is for mocking purposes (as you cannot mock os.platform directly)
 export const getOsPlatform = () => platform();
@@ -10,11 +9,11 @@ export const isRoot = () => {
   return process.getuid && process.getuid() === 0;
 };
 
-export const cpuCores = () => {
+export const getTotalCpuCores = () => {
   return cpus().length;
 };
 
-export const totalMemoryInBytes = () => {
+export const getTotalMemory = () => {
   return totalmem();
 };
 
@@ -66,38 +65,36 @@ export const verifyLinuxServiceEnabled =
     };
   };
 
-  export const verifyMinCpuRequirements =
-   (minCpuCores: number): InstallerStepFn => 
-   async () => {
-    if (cpuCores() >= minCpuCores) {
+export const verifyMinCpuRequirements =
+  (minCpuCores: number): InstallerStepFn =>
+  async () => {
+    if (getTotalCpuCores() >= minCpuCores) {
       return {
         success: true,
         successText: "OK",
       };
-    }
-    else {
+    } else {
       return {
         success: false,
         errorTitle: `This system does not meet minimum requirements`,
         errorDescription: `Minimum system CPU requirments ${minCpuCores} logical cores`,
-      }
+      };
     }
   };
 
-  export const verifyMinMemoryRequirements = 
+export const verifyMinMemoryRequirements =
   (minMemoryBytes: number): InstallerStepFn =>
-   async () => {
-    if (totalMemoryInBytes() >= minMemoryBytes) {
+  async () => {
+    if (getTotalMemory() >= minMemoryBytes) {
       return {
         success: true,
         successText: "OK",
       };
-    }
-    else {
+    } else {
       return {
         success: false,
         errorTitle: `This system does not meet minimum requirements`,
         errorDescription: `Minimum system RAM requirments ${minMemoryBytes} Bytes`,
-      }
+      };
     }
   };
