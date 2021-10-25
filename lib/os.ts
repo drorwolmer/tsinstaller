@@ -14,8 +14,8 @@ export const cpuCores = () => {
   return cpus().length;
 };
 
-export const totalMemoryInGb = () => {
-  return Math.round(totalmem() / (1024*1024*1024));
+export const totalMemoryInBytes = () => {
+  return totalmem();
 };
 
 export const verifyRoot: InstallerStepFn = async () => {
@@ -85,9 +85,9 @@ export const verifyLinuxServiceEnabled =
   };
 
   export const verifyMinMemoryRequirements = 
-  (minMemoryGb: number): InstallerStepFn =>
+  (minMemoryBytes: number): InstallerStepFn =>
    async () => {
-    if (totalMemoryInGb() >= minMemoryGb) {
+    if (totalMemoryInBytes() >= minMemoryBytes) {
       return {
         success: true,
         successText: "OK",
@@ -97,7 +97,7 @@ export const verifyLinuxServiceEnabled =
       return {
         success: false,
         errorTitle: `This system does not meet minimum requirements`,
-        errorDescription: `Minimum system RAM requirments ${minMemoryGb}GB`,
+        errorDescription: `Minimum system RAM requirments ${minMemoryBytes} Bytes`,
       }
     }
   };

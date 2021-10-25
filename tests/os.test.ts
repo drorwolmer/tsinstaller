@@ -125,7 +125,7 @@ describe("OS TESTS", () => {
 
   it("Fails if memory count doesn't meet requirements", async () => {
     const getMemoryMock = jest
-      .spyOn(os, "totalMemoryInGb")
+      .spyOn(os, "totalMemoryInBytes")
       .mockReturnValue(6);
 
     const res = await verifyMinMemoryRequirements(8)();
@@ -148,7 +148,7 @@ describe("OS TESTS", () => {
 
   it("Succeeds if memory count meet requirements", async () => {
     const getMemoryMock = jest
-      .spyOn(os, "totalMemoryInGb")
+      .spyOn(os, "totalMemoryInBytes")
       .mockReturnValue(10);
 
     const res = await verifyMinMemoryRequirements(8)();
