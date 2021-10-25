@@ -60,6 +60,7 @@ export const saveDockerImagesToFile = async (
     console.error(res);
     throw new Error("Could not save images");
   }
+  console.error(res);
 };
 
 export const getGitCommit = () => {

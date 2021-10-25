@@ -1,4 +1,8 @@
-import { verifyLinuxServiceEnabled } from "../lib/os";
+import {
+  verifyLinuxServiceEnabled,
+  verifyMinCpuRequirements,
+  verifyMinMemoryRequirements,
+} from "../lib/os";
 import * as subprocess from "../lib/subprocess";
 import * as os from "../lib/os";
 
@@ -110,5 +114,49 @@ describe("OS TESTS", () => {
     expect(res.successText).toEqual("OK");
     expect(getOsPlatformMock).toBeCalled();
     expect(spawnAsyncMock).toBeCalled();
+  });
+
+  it("Fails if cpu count doesn't meet requirements", async () => {
+    const getOsCpusMock = jest.spyOn(os, "getTotalCpuCores").mockReturnValue(6);
+
+    const res = await verifyMinCpuRequirements(8)();
+    expect(res.success).toBeFalsy();
+    expect(res.errorTitle).toEqual(
+      "This system does not meet minimum requirements"
+    );
+    expect(getOsCpusMock).toBeCalled();
+  });
+
+  it("Fails if memory count doesn't meet requirements", async () => {
+    const getMemoryMock = jest.spyOn(os, "getTotalMemory").mockReturnValue(6);
+
+    const res = await verifyMinMemoryRequirements(8)();
+
+    expect(res.success).toBeFalsy();
+    expect(res.errorTitle).toEqual(
+      "This system does not meet minimum requirements"
+    );
+    expect(getMemoryMock).toBeCalled();
+  });
+
+  it("Succeeds if cpu count meet requirements", async () => {
+    const getOsCpusMock = jest
+      .spyOn(os, "getTotalCpuCores")
+      .mockReturnValue(10);
+
+    const res = await verifyMinCpuRequirements(8)();
+    expect(res.success).toBeTruthy();
+    expect(res.successText).toEqual("OK");
+    expect(getOsCpusMock).toBeCalled();
+  });
+
+  it("Succeeds if memory count meet requirements", async () => {
+    const getMemoryMock = jest.spyOn(os, "getTotalMemory").mockReturnValue(10);
+
+    const res = await verifyMinMemoryRequirements(8)();
+
+    expect(res.success).toBeTruthy();
+    expect(res.successText).toEqual("OK");
+    expect(getMemoryMock).toBeCalled();
   });
 });
