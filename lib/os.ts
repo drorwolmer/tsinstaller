@@ -66,18 +66,23 @@ export const verifyLinuxServiceEnabled =
   };
 
 export const verifyMinCpuRequirements =
-  (minCpuCores: number): InstallerStepFn =>
+  (
+    minCpuCores: number
+  ): InstallerStepFn<{ cpuCores: number; minCpuCores: number }> =>
   async () => {
-    if (getTotalCpuCores() >= minCpuCores) {
+    const cpuCores = getTotalCpuCores();
+    if (cpuCores >= minCpuCores) {
       return {
         success: true,
         successText: "OK",
+        data: { cpuCores, minCpuCores },
       };
     } else {
       return {
         success: false,
         errorTitle: `This system does not meet minimum requirements`,
         errorDescription: `Minimum system CPU requirments ${minCpuCores} logical cores`,
+        data: { cpuCores, minCpuCores },
       };
     }
   };
@@ -85,16 +90,25 @@ export const verifyMinCpuRequirements =
 export const verifyMinMemoryRequirements =
   (minMemoryBytes: number): InstallerStepFn =>
   async () => {
-    if (getTotalMemory() >= minMemoryBytes) {
+    const totalMemory = getTotalMemory();
+    const data = {
+      totalMemory,
+      totalMemoryMb: Math.floor(totalMemory / (1024 * 1024)),
+      minMemoryBytes,
+      minMemoryMB: Math.floor(minMemoryBytes / (1024 * 1024)),
+    };
+    if (totalMemory >= minMemoryBytes) {
       return {
         success: true,
         successText: "OK",
+        data,
       };
     } else {
       return {
         success: false,
         errorTitle: `This system does not meet minimum requirements`,
         errorDescription: `Minimum system RAM requirments ${minMemoryBytes} Bytes`,
+        data,
       };
     }
   };

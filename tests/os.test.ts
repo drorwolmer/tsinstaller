@@ -124,18 +124,30 @@ describe("OS TESTS", () => {
     expect(res.errorTitle).toEqual(
       "This system does not meet minimum requirements"
     );
+    expect(res.data).toEqual({ cpuCores: 6, minCpuCores: 8 });
+
     expect(getOsCpusMock).toBeCalled();
   });
 
   it("Fails if memory count doesn't meet requirements", async () => {
-    const getMemoryMock = jest.spyOn(os, "getTotalMemory").mockReturnValue(6);
+    // Mock it so we have only 4GB of memory
+    const getMemoryMock = jest
+      .spyOn(os, "getTotalMemory")
+      .mockReturnValue(4 * 1024 * 1024 * 1024);
 
-    const res = await verifyMinMemoryRequirements(8)();
+    // Require 8GB of memory
+    const res = await verifyMinMemoryRequirements(8 * 1024 * 1024 * 1024)();
 
     expect(res.success).toBeFalsy();
     expect(res.errorTitle).toEqual(
       "This system does not meet minimum requirements"
     );
+    expect(res.data).toEqual({
+      minMemoryBytes: 8589934592,
+      minMemoryMB: 8192,
+      totalMemory: 4294967296,
+      totalMemoryMb: 4096,
+    });
     expect(getMemoryMock).toBeCalled();
   });
 
@@ -147,16 +159,26 @@ describe("OS TESTS", () => {
     const res = await verifyMinCpuRequirements(8)();
     expect(res.success).toBeTruthy();
     expect(res.successText).toEqual("OK");
+    expect(res.data).toEqual({ cpuCores: 10, minCpuCores: 8 });
     expect(getOsCpusMock).toBeCalled();
   });
 
   it("Succeeds if memory count meet requirements", async () => {
-    const getMemoryMock = jest.spyOn(os, "getTotalMemory").mockReturnValue(10);
+    const getMemoryMock = jest
+      .spyOn(os, "getTotalMemory")
+      .mockReturnValue(10 * 1024 * 1024 * 1024);
 
-    const res = await verifyMinMemoryRequirements(8)();
+    // Require 4GB of memory
+    const res = await verifyMinMemoryRequirements(4 * 1024 * 1024 * 1024)();
 
     expect(res.success).toBeTruthy();
     expect(res.successText).toEqual("OK");
+    expect(res.data).toEqual({
+      minMemoryBytes: 4294967296,
+      minMemoryMB: 4096,
+      totalMemory: 10737418240,
+      totalMemoryMb: 10240,
+    });
     expect(getMemoryMock).toBeCalled();
   });
 });
