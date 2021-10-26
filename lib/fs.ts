@@ -61,11 +61,14 @@ export const untar =
       return {
         success: true,
         successText: "OK",
+        successDebug: `Extracted to ${path}`,
+        data: { status, stderr, stdout, cmdline },
       };
     }
     return {
       success: false,
       errorTitle: "Failed to extract archive",
       errorDescription: stderr,
+      data: { status, stderr, stdout, cmdline },
     };
   };

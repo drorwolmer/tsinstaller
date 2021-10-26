@@ -1,6 +1,7 @@
-import { verifyDiskSpace } from "../lib/fs";
+import { untar, verifyDiskSpace } from "../lib/fs";
 import * as checkDiskSpace from "check-disk-space";
 import * as os from "../lib/os";
+import * as subprocess from "../lib/subprocess";
 
 describe("fs tests", () => {
   it("Should fail when insufficient space", async () => {
@@ -61,5 +62,55 @@ describe("fs tests", () => {
     });
     expect(checkDiskSpaceMock).toBeCalledWith("/var/lib/docker");
     expect(getOsPlatformMock).toBeCalledTimes(1);
+  });
+
+  it("Should untar correctly", async () => {
+    const spawnMock = jest
+      .spyOn(subprocess, "spawnBashSelfExtractAsync")
+      .mockImplementation(async () => {
+        return {
+          cmdline: "tar -vxf foo",
+          status: 0,
+          stderr: "",
+          stdout: "foo\nbar\n",
+        };
+      });
+
+    const res = await untar("foo", "/tmp/foo")();
+    expect(res.success).toBeTruthy();
+    expect(res.successText).toEqual("OK");
+    expect(res.successDebug).toEqual("Extracted to /tmp/foo");
+    expect(res.data).toEqual({
+      cmdline: "tar -vxf foo",
+      status: 0,
+      stderr: "",
+      stdout: "foo\nbar\n",
+    });
+    expect(spawnMock).toBeCalledWith("tar -xzvf", "foo", { cwd: "/tmp/foo" });
+  });
+
+  it("Fails if cannot untar", async () => {
+    const spawnMock = jest
+      .spyOn(subprocess, "spawnBashSelfExtractAsync")
+      .mockImplementation(async () => {
+        return {
+          cmdline: "tar -vxf foo",
+          status: 1,
+          stderr: "Failed because of foo",
+          stdout: "",
+        };
+      });
+
+    const res = await untar("foo", "/tmp/foo")();
+    expect(res.success).toBeFalsy();
+    expect(res.errorTitle).toEqual("Failed to extract archive");
+    expect(res.errorDescription).toEqual("Failed because of foo");
+    expect(res.data).toEqual({
+      cmdline: "tar -vxf foo",
+      status: 1,
+      stderr: "Failed because of foo",
+      stdout: "",
+    });
+    expect(spawnMock).toBeCalledWith("tar -xzvf", "foo", { cwd: "/tmp/foo" });
   });
 });
