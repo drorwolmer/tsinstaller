@@ -1,6 +1,6 @@
 {
   "name": "tsinstaller",
-  "version": "0.0.10",
+  "version": "0.0.11",
   "description": "Extensible installer written in TypeScript",
   "scripts": {
     "build": "tsc",
