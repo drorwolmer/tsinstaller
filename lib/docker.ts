@@ -165,6 +165,7 @@ export const dockerComposeUp =
     stdout: string;
     stderr: string;
     status: number;
+    cmdline: string;
   }> =>
   async () => {
     // Either have ["-f foo", "-f bar"] or []
@@ -172,10 +173,10 @@ export const dockerComposeUp =
 
     let env: NodeJS.ProcessEnv | undefined = undefined;
     if (options.temporaryDir) {
-      env = { TMPDIR: options.temporaryDir };
+      env = { ...process.env, TMPDIR: options.temporaryDir };
     }
 
-    const { stdout, stderr, status } = await spawnAsync(
+    const { cmdline, stdout, stderr, status } = await spawnAsync(
       "docker-compose",
       composeFilesFlag.concat(["up", "-d"]),
       { cwd: options.projectDirectory, env }
@@ -186,13 +187,13 @@ export const dockerComposeUp =
         success: false,
         errorTitle: "Failed to bring up containers",
         errorDescription: stderr,
-        data: { stdout, stderr, status },
+        data: { stdout, stderr, status, cmdline },
       };
     }
 
     return {
       success: true,
       successText: "OK",
-      data: { stdout, stderr, status },
+      data: { stdout, stderr, status, cmdline },
     };
   };

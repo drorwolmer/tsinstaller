@@ -184,7 +184,12 @@ describe("Docker tests", () => {
 
     expect(res.success).toBeTruthy();
     expect(res.successText).toEqual("OK");
-    expect(res.data).toEqual({ status: 0, stderr: "", stdout: "OK" });
+    expect(res.data).toEqual({
+      status: 0,
+      stderr: "",
+      stdout: "OK",
+      cmdline: "docker-compose up -d",
+    });
 
     expect(spawnAsyncMock).toBeCalledWith("docker-compose", ["up", "-d"], {
       cwd: "/tmp/foo",
@@ -210,7 +215,12 @@ describe("Docker tests", () => {
 
     expect(res.success).toBeTruthy();
     expect(res.successText).toEqual("OK");
-    expect(res.data).toEqual({ status: 0, stderr: "", stdout: "OK" });
+    expect(res.data).toEqual({
+      status: 0,
+      stderr: "",
+      stdout: "OK",
+      cmdline: "docker-compose up -d",
+    });
 
     expect(spawnAsyncMock).toBeCalledWith(
       "docker-compose",
@@ -240,11 +250,16 @@ describe("Docker tests", () => {
 
     expect(res.success).toBeTruthy();
     expect(res.successText).toEqual("OK");
-    expect(res.data).toEqual({ status: 0, stderr: "", stdout: "OK" });
+    expect(res.data).toEqual({
+      status: 0,
+      stderr: "",
+      stdout: "OK",
+      cmdline: "docker-compose up -d",
+    });
 
     expect(spawnAsyncMock).toBeCalledWith("docker-compose", ["up", "-d"], {
       cwd: "/tmp/foo",
-      env: { TMPDIR: "/path/to/newTemp" },
+      env: { ...process.env, TMPDIR: "/path/to/newTemp" },
     });
   });
 
@@ -271,6 +286,7 @@ describe("Docker tests", () => {
     expect(res.data).toEqual({
       status: 1,
       stderr: "some error",
+      cmdline: "docker-compose up -d",
       stdout: "",
     });
 
