@@ -2,15 +2,14 @@ import {writeFileSync, appendFileSync} from "fs";
 import {tmpdir} from "os";
 import {join} from "path"
 
-const logDir = join(tmpdir(), "installer.log")
-
-export const resetLogFile = () => {
-    writeFileSync(logDir, "")
-};
+const timeStamp = () => {
+    return new Date().toISOString().replace(/([^T]+)T([^\.]+).*/g, '$1 $2').replace(/[\s]/g,'_').replace(/[:]/g,'-');
+  };
+const logFileName = `installer-${timeStamp()}.log`
+const logDir = join(tmpdir(), logFileName)
 
 export const log = (message: string) => {
-    const timestamp = new Date().toLocaleString();
-    appendFileSync(logDir, `[INFO] ${timestamp}  ${message} \n`)
+    appendFileSync(logDir, `[INFO] ${timeStamp()}  ${message} \n`)
 }
 
 
