@@ -44,7 +44,11 @@ export const spawnBashAsync = async (
   command: string,
   options?: SpawnOptionsWithoutStdio
 ) => {
-  return spawnAsync("bash", ["-c"].concat([command]), options);
+  return spawnAsync(
+    "bash",
+    ["-c"].concat(["set -euo pipefail; " + command]),
+    options
+  );
 };
 
 export const spawnBashSelfExtractAsync = async (

@@ -1,10 +1,6 @@
-import * as path from "path";
-import * as fs from "fs";
-import {
-  spawnAsync,
-  spawnBashAsync,
-  spawnBashSelfExtractAsync,
-} from "../lib/subprocess";
+import { spawnAsync, spawnBashAsync } from "../lib/subprocess";
+
+import * as subprocess from "../lib/subprocess";
 
 describe("Check subprocess", () => {
   it("Check ls", async () => {
@@ -50,18 +46,52 @@ describe("Check subprocess", () => {
 
   it("spawnBashAsync sanity", async () => {
     const { stdout, status } = await spawnBashAsync("echo foobar | head -c 3");
+    expect(status).toBe(0);
     expect(stdout).toBe("foo");
   });
 
+  it("spawnBashAsync sanity | pipe fails", async () => {
+    const { stdout, status, stderr } = await spawnBashAsync(
+      "echo foo | NONEXISTENT_CMD | tail -n 1"
+    );
+    expect(status).toBeGreaterThan(0);
+    expect(stdout === "").toBeTruthy();
+    expect(stderr !== "").toBeTruthy();
+  });
+
+  it("spawnBashAsync sets shell config", async () => {
+    const foo = jest
+      .spyOn(subprocess, "spawnAsync")
+      .mockImplementation(async () => {
+        return {
+          cmdline: "foo",
+          stderr: "",
+          stdout: "foo",
+          status: 0,
+        };
+      });
+
+    const { stdout, status } = await spawnBashAsync("echo foobar | head -c 3", {
+      cwd: "/tmp/",
+    });
+    expect(status).toBe(0);
+    expect(stdout).toBe("foo");
+
+    expect(foo).toBeCalledWith(
+      "bash",
+      ["-c", "set -euo pipefail; echo foobar | head -c 3"],
+      { cwd: "/tmp/" }
+    );
+  });
+
   it("spawn timeout sanity", async () => {
-    let error;
     try {
       await spawnBashAsync("sleep 1", {
         timeout: 500, // 500 ms should timeout before 1 sec passes
       });
+      fail("should not reach here");
     } catch (e) {
-      error = e;
+      expect(e).toEqual(new Error("Subprocess Timeout"));
     }
-    expect(error).toEqual(new Error("Subprocess Timeout"));
   });
 });
