@@ -153,22 +153,32 @@ export const loadDockerImages =
     };
   };
 
+export type dockerComposeUpOptions = {
+  projectDirectory: string;
+  composeFiles?: string[];
+  temporaryDir?: string; // Needed sometimes because of https://github.com/docker/compose/issues/4137
+};
 export const dockerComposeUp =
   (
-    projectDirectory: string,
-    composeFiles?: string[] | undefined
+    options: dockerComposeUpOptions
   ): InstallerStepFn<{
     stdout: string;
     stderr: string;
     status: number;
   }> =>
   async () => {
-    const composeFilesFlag = composeFiles?.map((v) => `-f ${v}`) || [];
+    // Either have ["-f foo", "-f bar"] or []
+    const composeFilesFlag = options.composeFiles?.map((v) => `-f ${v}`) || [];
+
+    let env: NodeJS.ProcessEnv | undefined = undefined;
+    if (options.temporaryDir) {
+      env = { TEMPDIR: options.temporaryDir };
+    }
 
     const { stdout, stderr, status } = await spawnAsync(
       "docker-compose",
       composeFilesFlag.concat(["up", "-d"]),
-      { cwd: projectDirectory }
+      { cwd: options.projectDirectory, env }
     );
 
     if (status !== 0) {

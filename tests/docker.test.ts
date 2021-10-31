@@ -180,7 +180,7 @@ describe("Docker tests", () => {
         };
       });
 
-    const res = await dockerComposeUp("/tmp/foo")();
+    const res = await dockerComposeUp({ projectDirectory: "/tmp/foo" })();
 
     expect(res.success).toBeTruthy();
     expect(res.successText).toEqual("OK");
@@ -203,10 +203,10 @@ describe("Docker tests", () => {
         };
       });
 
-    const res = await dockerComposeUp("/tmp/foo", [
-      "docker-compose.yml",
-      "docker-compose.prod.yml",
-    ])();
+    const res = await dockerComposeUp({
+      projectDirectory: "/tmp/foo",
+      composeFiles: ["docker-compose.yml", "docker-compose.prod.yml"],
+    })();
 
     expect(res.success).toBeTruthy();
     expect(res.successText).toEqual("OK");
@@ -221,6 +221,33 @@ describe("Docker tests", () => {
     );
   });
 
+  it("dockerComposeUp sanity, TEMPDIR", async () => {
+    const spawnAsyncMock = jest
+      .spyOn(subprocess, "spawnAsync")
+      .mockImplementation(async () => {
+        return {
+          cmdline: "docker-compose up -d",
+          status: 0,
+          stderr: "",
+          stdout: "OK",
+        };
+      });
+
+    const res = await dockerComposeUp({
+      projectDirectory: "/tmp/foo",
+      temporaryDir: "/path/to/newTemp",
+    })();
+
+    expect(res.success).toBeTruthy();
+    expect(res.successText).toEqual("OK");
+    expect(res.data).toEqual({ status: 0, stderr: "", stdout: "OK" });
+
+    expect(spawnAsyncMock).toBeCalledWith("docker-compose", ["up", "-d"], {
+      cwd: "/tmp/foo",
+      env: { TEMPDIR: "/path/to/newTemp" },
+    });
+  });
+
   it("dockerComposeUp fails if docker-compose fails", async () => {
     const spawnAsyncMock = jest
       .spyOn(subprocess, "spawnAsync")
@@ -233,10 +260,10 @@ describe("Docker tests", () => {
         };
       });
 
-    const res = await docker.dockerComposeUp("/tmp/foo", [
-      "docker-compose.yml",
-      "docker-compose.prod.yml",
-    ])();
+    const res = await docker.dockerComposeUp({
+      projectDirectory: "/tmp/foo",
+      composeFiles: ["docker-compose.yml", "docker-compose.prod.yml"],
+    })();
 
     expect(res.success).toBeFalsy();
     expect(res.errorTitle).toEqual("Failed to bring up containers");
