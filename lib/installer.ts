@@ -3,7 +3,10 @@ import { cyan, bold, green, red } from "cli-color";
 import { Step, StepResult } from "./types";
 import logSymbols from "log-symbols";
 import { InstallerStepFn } from "./types";
+import { resetLogFile, log } from "../utils/logsHandler";
+const logFile = {
 
+}
 const sp = {
   interval: 80,
   frames: ["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"].map((v) =>
@@ -49,10 +52,12 @@ export const startInstaller = async (steps: Step[], header?: string) => {
   if (header) {
     console.info(header);
   }
+  resetLogFile()
 
   for (const { title, f } of steps) {
     const res = await step(title, f);
     if (res.success && res.successDebug !== undefined) {
+      log(`${title}: ${JSON.stringify(res, null, 4)}`);
       console.info(res.successDebug);
     }
     if (process.env.DEBUG === "1") {
@@ -60,6 +65,7 @@ export const startInstaller = async (steps: Step[], header?: string) => {
     }
     if (!res.success) {
       if (res.errorDescription !== undefined) {
+        log(`${title}: ${JSON.stringify(res, null, 4)}`);
         console.error(res.errorDescription);
       }
       process.exit(1);
