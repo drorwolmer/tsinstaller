@@ -221,7 +221,7 @@ describe("Docker tests", () => {
     );
   });
 
-  it("dockerComposeUp sanity, TEMPDIR", async () => {
+  it("dockerComposeUp sanity, TMPDIR", async () => {
     const spawnAsyncMock = jest
       .spyOn(subprocess, "spawnAsync")
       .mockImplementation(async () => {
@@ -244,7 +244,7 @@ describe("Docker tests", () => {
 
     expect(spawnAsyncMock).toBeCalledWith("docker-compose", ["up", "-d"], {
       cwd: "/tmp/foo",
-      env: { TEMPDIR: "/path/to/newTemp" },
+      env: { TMPDIR: "/path/to/newTemp" },
     });
   });
 

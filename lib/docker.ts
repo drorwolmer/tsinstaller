@@ -172,7 +172,7 @@ export const dockerComposeUp =
 
     let env: NodeJS.ProcessEnv | undefined = undefined;
     if (options.temporaryDir) {
-      env = { TEMPDIR: options.temporaryDir };
+      env = { TMPDIR: options.temporaryDir };
     }
 
     const { stdout, stderr, status } = await spawnAsync(
