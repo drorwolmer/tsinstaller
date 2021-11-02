@@ -3,14 +3,11 @@ import {tmpdir} from "os";
 import {join} from "path";
 import moment from 'moment';
 
-const timeStamp = () => {
-    return moment(new Date()).format('YYYY-MM-DDThmmss')
-  };
-const logFileName = `installer-${timeStamp()}.log`
-export const logPath = join(tmpdir(), logFileName)
+const LOG_FILE_NAME = `installer-${moment(new Date()).format('YYYY-MM-DDThmmss')}.log`
+export const LOG_PATH = join(tmpdir(), LOG_FILE_NAME)
 
-export const log = (message: string) => {
-    appendFileSync(logPath, `[INFO] ${timeStamp()}  ${message} \n`)
+export const logToFile = (message: string) => {
+    appendFileSync(LOG_PATH, `[INFO] ${new Date().toISOString()} ${message}\n`)
 }
 
 

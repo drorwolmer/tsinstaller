@@ -1,13 +1,15 @@
-import { log ,logPath} from "../utils/logsHandler";
+import { logToFile ,LOG_PATH} from "../utils/logsHandler";
 import {readFileSync,existsSync} from "fs";
 
 
 describe("Logger tests", () => {
     it("Log messages", async () => {
         const message = "logged message"
-        log(message)
-        const content = readFileSync(logPath);
+        logToFile(message)
+        console.log(`${LOG_PATH}`)
+        const content = readFileSync(LOG_PATH);
+        console.log(`${JSON.stringify(content.toString())}`)
         expect(content.toString()).toContain(message);
-        expect(existsSync(logPath)).toBeTruthy();
+        expect(existsSync(LOG_PATH)).toBeTruthy();
     });
   });

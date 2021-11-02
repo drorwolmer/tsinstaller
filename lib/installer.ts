@@ -3,10 +3,8 @@ import { cyan, bold, green, red } from "cli-color";
 import { Step, StepResult } from "./types";
 import logSymbols from "log-symbols";
 import { InstallerStepFn } from "./types";
-import { log } from "../utils/logsHandler";
-const logFile = {
+import { logToFile, LOG_PATH } from "../utils/logsHandler";
 
-}
 const sp = {
   interval: 80,
   frames: ["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"].map((v) =>
@@ -56,7 +54,7 @@ export const startInstaller = async (steps: Step[], header?: string) => {
   for (const { title, f } of steps) {
     const res = await step(title, f);
     if (res.success && res.successDebug !== undefined) {
-      log(`${title}: ${JSON.stringify(res, null)}`);
+      logToFile(`${JSON.stringify(Object.assign({"title" : title}, res ), null)}`);
       console.info(res.successDebug);
     }
     if (process.env.DEBUG === "1") {
@@ -64,9 +62,10 @@ export const startInstaller = async (steps: Step[], header?: string) => {
     }
     if (!res.success) {
       if (res.errorDescription !== undefined) {
-        log(`${title}: ${JSON.stringify(res, null)}`);
+        logToFile(`${JSON.stringify(Object.assign({"title" : title}, res), null)}`);
         console.error(res.errorDescription);
       }
+      console.error(`Installation failed, further info can be found on: ${LOG_PATH}`);
       process.exit(1);
     }
   }
