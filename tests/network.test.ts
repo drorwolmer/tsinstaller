@@ -272,4 +272,26 @@ describe("URL tests", () => {
 
     expect(verifyAllUrlsMock).toBeCalledTimes(2);
   });
+  
+  it("verifyAllUrls checks all URLS with proxy", async () => {
+    const requiredUrls: RequiredUrl[] = [
+      {
+        url: "https://google.com",
+        expectedStatus: [200],
+      }
+    ];
+
+    const res = await verifyAllUrls(requiredUrls,undefined,"localhost",1234)();
+    console.log(`Result: ${JSON.stringify(res)}`)
+    expect(res.success).toBeTruthy();
+    expect(res.successText).toEqual("OK");
+    expect(res.data).toEqual([
+      {
+        success: true,
+        requiredUrl: requiredUrls[0],
+        status: 200,
+        text: "OK",
+      },
+    ]);
+  });
 });
