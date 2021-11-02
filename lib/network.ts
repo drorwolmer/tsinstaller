@@ -3,6 +3,7 @@ import { InstallerStepFn } from "./types";
 import { sleep, zip } from "./utils";
 import Table from "cli-table";
 import clc from "cli-color";
+import httpsProxyAgent from "https-proxy-agent"
 
 export const WEB_REQUEST_TIMEOUT_SECONDS = 3;
 export type RequiredUrl = {
@@ -18,31 +19,22 @@ export type UrlResult = {
   axiosError?: AxiosError;
 };
 
-export const getUrlStatusThroughProxy = async (
-  url: string,
-  timeoutSeconds = WEB_REQUEST_TIMEOUT_SECONDS,
-  proxyUrl: string,
-  proxyPort: number,
-) => {
-  const res = await axios.get(url, {
-    timeout: timeoutSeconds * 1000,
-    validateStatus: (s) => true, // Do not fail if status is > 4xx
-    proxy: {
-      host: proxyUrl,
-      port: proxyPort
-    }
-  });
-  return res.status;
-};
-
 export const getUrlStatus = async (
   url: string,
-  timeoutSeconds = WEB_REQUEST_TIMEOUT_SECONDS
-) => {
+  timeoutSeconds = WEB_REQUEST_TIMEOUT_SECONDS,
+  proxyUrl?: string,
+  ) => {
+
+  let agent = undefined;
+  if (proxyUrl != null) {
+    agent = httpsProxyAgent(proxyUrl);
+  }
   const res = await axios.get(url, {
     timeout: timeoutSeconds * 1000,
     validateStatus: (s) => true, // Do not fail if status is > 4xx
+    httpsAgent: agent
   });
+   
   return res.status;
 };
 
@@ -50,22 +42,12 @@ export const verifyAllUrls =
   (
     requiredUrls: RequiredUrl[],
     timeoutSeconds = WEB_REQUEST_TIMEOUT_SECONDS,
-    proxyUrl?: string,
-    proxyPort?: number,
+    proxyUrl?: string
   ): InstallerStepFn<UrlResult[]> =>
   async () => {
     const data: UrlResult[] = [];
-    let promisesResults
-    if (proxyUrl != null && proxyPort != null) {
-      promisesResults = await Promise.allSettled(
-        requiredUrls.map(({ url }) => getUrlStatusThroughProxy(url, timeoutSeconds, proxyUrl, proxyPort))
-      );
-    }
-    else {
-      promisesResults = await Promise.allSettled(
-        requiredUrls.map(({ url }) => getUrlStatus(url, timeoutSeconds))
-      );
-    }
+    const promisesResults = await Promise.allSettled(
+      requiredUrls.map(({ url }) => getUrlStatus(url, timeoutSeconds, proxyUrl)));
 
     let successFlag = true;
 

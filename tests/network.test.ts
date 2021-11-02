@@ -276,22 +276,96 @@ describe("URL tests", () => {
   it("verifyAllUrls checks all URLS with proxy", async () => {
     const requiredUrls: RequiredUrl[] = [
       {
+        url: "https://auth.docker.io",
+        expectedStatus: [404],
+      },
+      {
         url: "https://google.com",
         expectedStatus: [200],
-      }
+      },
     ];
 
-    const res = await verifyAllUrls(requiredUrls,undefined,"localhost",1234)();
-    console.log(`Result: ${JSON.stringify(res)}`)
+    const verifyAllUrlsMock = jest
+    .spyOn(network, "verifyAllUrls")
+    .mockImplementation(
+      () => () =>
+        Promise.resolve({
+          success: true,
+          data: [
+            {
+              success: true,
+              requiredUrl: requiredUrls[0],
+              status: 404,
+              text: "OK",
+            },
+            {
+              success: true,
+              requiredUrl: requiredUrls[1],
+              status: 200,
+              text: "OK",
+            },
+          ]
+        })
+    );
+  
+
+    const res = await verifyAllUrls(requiredUrls,undefined,"http://@localhost:1234")();
     expect(res.success).toBeTruthy();
-    expect(res.successText).toEqual("OK");
     expect(res.data).toEqual([
       {
         success: true,
         requiredUrl: requiredUrls[0],
+        status: 404,
+        text: "OK",
+      },
+      {
+        success: true,
+        requiredUrl: requiredUrls[1],
         status: 200,
         text: "OK",
       },
     ]);
+    expect(verifyAllUrlsMock).toBeCalledTimes(1);
   });
+
+  it("verifyAllUrls checks all URLS with proxy fails", async () => {
+    const requiredUrls: RequiredUrl[] = [
+      {
+        url: "https://auth.docker.io",
+        expectedStatus: [404],
+      }
+    ];
+
+    const verifyAllUrlsMock = jest
+    .spyOn(network, "verifyAllUrls")
+    .mockImplementation(
+      () => () =>
+        Promise.resolve({
+          success: false,
+          data: [
+            {
+              success: false,
+              requiredUrl: requiredUrls[0],
+              status: 404,
+              text: "something broke",
+            },
+          ]
+        })
+    );
+  
+
+    const res = await verifyAllUrls(requiredUrls,undefined,"http://@localhost:1234")();
+    expect(res.success).toBeFalsy();
+    expect(res.data).toEqual([
+      {
+        success: false,
+        requiredUrl: requiredUrls[0],
+        status: 404,
+        text: "something broke",
+      }
+    ]);
+    expect(verifyAllUrlsMock).toBeCalledTimes(1);
+  });
+
+  
 });
