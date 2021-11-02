@@ -1,15 +1,16 @@
-import {writeFileSync, appendFileSync} from "fs";
+import {appendFileSync} from "fs";
 import {tmpdir} from "os";
-import {join} from "path"
+import {join} from "path";
+import moment from 'moment';
 
 const timeStamp = () => {
-    return new Date().toISOString().replace(/([^T]+)T([^\.]+).*/g, '$1 $2').replace(/[\s]/g,'_').replace(/[:]/g,'-');
+    return moment(new Date()).format('YYYY-MM-DDThmmss')
   };
 const logFileName = `installer-${timeStamp()}.log`
-export const logDir = join(tmpdir(), logFileName)
+export const logPath = join(tmpdir(), logFileName)
 
 export const log = (message: string) => {
-    appendFileSync(logDir, `[INFO] ${timeStamp()}  ${message} \n`)
+    appendFileSync(logPath, `[INFO] ${timeStamp()}  ${message} \n`)
 }
 
 
