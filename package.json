@@ -29,6 +29,7 @@
     "cli-color": "^2.0.0",
     "cli-table": "^0.3.6",
     "esbuild": "^0.13.5",
+    "https-proxy-agent": "^5.0.0",
     "jest": "^27.2.5",
     "log-symbols": "4.1.0",
     "ora": "5.4.1",

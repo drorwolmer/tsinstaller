@@ -3,6 +3,7 @@ import { InstallerStepFn } from "./types";
 import { sleep, zip } from "./utils";
 import Table from "cli-table";
 import clc from "cli-color";
+import httpsProxyAgent from "https-proxy-agent";
 
 export const WEB_REQUEST_TIMEOUT_SECONDS = 3;
 export type RequiredUrl = {
@@ -18,26 +19,40 @@ export type UrlResult = {
   axiosError?: AxiosError;
 };
 
+export type GetUrlStatusConfig = {
+  proxyUrl?: string;
+  timeoutSeconds?: number;
+};
+
 export const getUrlStatus = async (
   url: string,
-  timeoutSeconds = WEB_REQUEST_TIMEOUT_SECONDS
+  config: GetUrlStatusConfig = {}
 ) => {
+  const timeoutSeconds = config.timeoutSeconds || WEB_REQUEST_TIMEOUT_SECONDS;
+
+  let agent = undefined;
+  if (config.proxyUrl) {
+    agent = httpsProxyAgent(config.proxyUrl);
+  }
+
   const res = await axios.get(url, {
     timeout: timeoutSeconds * 1000,
     validateStatus: (s) => true, // Do not fail if status is > 4xx
+    httpsAgent: agent,
   });
+
   return res.status;
 };
 
 export const verifyAllUrls =
   (
     requiredUrls: RequiredUrl[],
-    timeoutSeconds = WEB_REQUEST_TIMEOUT_SECONDS
+    config: GetUrlStatusConfig = {}
   ): InstallerStepFn<UrlResult[]> =>
   async () => {
     const data: UrlResult[] = [];
     const promisesResults = await Promise.allSettled(
-      requiredUrls.map(({ url }) => getUrlStatus(url, timeoutSeconds))
+      requiredUrls.map(({ url }) => getUrlStatus(url, config))
     );
 
     let successFlag = true;
