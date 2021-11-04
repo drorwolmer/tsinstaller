@@ -40,7 +40,7 @@ describe("URL tests", () => {
   it("getUrlStatus with bad IP reaches timeout", async () => {
     let error;
     try {
-      await getUrlStatus("https://10.4.20.240", undefined, 1);
+      await getUrlStatus("https://10.4.20.240", { timeoutSeconds: 1 });
     } catch (e) {
       error = e as AxiosError;
     }
@@ -272,24 +272,22 @@ describe("URL tests", () => {
 
     expect(verifyAllUrlsMock).toBeCalledTimes(2);
   });
-  
+
   it("verifyAllUrls checks all URLS with proxy", async () => {
     const requiredUrls: RequiredUrl[] = [
       {
         url: "https://auth.docker.io",
         expectedStatus: [200],
-      }
+      },
     ];
 
     const getUrlStatusMock = jest
-    .spyOn(network, "getUrlStatus")
-    .mockImplementation(
-      () => 
-        Promise.resolve(200)
-    );
-  
+      .spyOn(network, "getUrlStatus")
+      .mockImplementation(() => Promise.resolve(200));
 
-    const res = await verifyAllUrls(requiredUrls,"http://@localhost:1234")();
+    const res = await verifyAllUrls(requiredUrls, {
+      proxyUrl: "http://@localhost:1234",
+    })();
     expect(res.success).toBeTruthy();
     expect(res.data).toEqual([
       {
@@ -297,10 +295,12 @@ describe("URL tests", () => {
         requiredUrl: requiredUrls[0],
         status: 200,
         text: "OK",
-      }
+      },
     ]);
     expect(getUrlStatusMock).toBeCalledTimes(1);
-    expect(getUrlStatusMock).toBeCalledWith("https://auth.docker.io", "http://@localhost:1234", 3);
+    expect(getUrlStatusMock).toBeCalledWith("https://auth.docker.io", {
+      proxyUrl: "http://@localhost:1234",
+    });
   });
 
   it("verifyAllUrls checks all URLS with non exising proxy", async () => {
@@ -311,7 +311,9 @@ describe("URL tests", () => {
       },
     ];
 
-    const res = await verifyAllUrls(requiredUrls,"http://noproxy:1234")();
+    const res = await verifyAllUrls(requiredUrls, {
+      proxyUrl: "http://noproxy:1234",
+    })();
     expect(res.success).toBeFalsy();
   });
 });
