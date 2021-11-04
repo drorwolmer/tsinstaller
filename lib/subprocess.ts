@@ -1,17 +1,19 @@
 import { spawn, SpawnOptionsWithoutStdio } from "child_process";
 import { getEntry, INSTALLER_FILE } from "./utils";
 
+export type spawnAsyncResult = {
+  stdout: string;
+  stderr: string;
+  status: number;
+  cmdline: string;
+};
+
 export const spawnAsync = async (
   command: string,
   args?: readonly string[] | undefined,
   options?: SpawnOptionsWithoutStdio
 ) =>
-  new Promise<{
-    stdout: string;
-    stderr: string;
-    status: number;
-    cmdline: string;
-  }>((resolve, reject) => {
+  new Promise<spawnAsyncResult>((resolve, reject) => {
     const stdoutBuffer: Buffer[] = [];
     const stderrBuffer: Buffer[] = [];
     const spawnProcess = spawn(command, args, options);
