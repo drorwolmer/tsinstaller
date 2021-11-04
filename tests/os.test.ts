@@ -1,4 +1,5 @@
 import {
+  runCommand,
   verifyLinuxServiceEnabled,
   verifyMinCpuRequirements,
   verifyMinMemoryRequirements,
@@ -180,5 +181,42 @@ describe("OS TESTS", () => {
       totalMemoryMb: 10240,
     });
     expect(getMemoryMock).toBeCalled();
+  });
+
+  it("runCommand succeeds", async () => {
+    const res = await runCommand("echo", ["foo", "bar"])();
+    expect(res.success).toBeTruthy();
+    expect(res.data).toEqual({
+      stdout: "foo bar\n",
+      stderr: "",
+      status: 0,
+      cmdline: "echo foo bar",
+    });
+    expect(res.successText).toEqual("OK");
+  });
+
+  it("runCommand fails", async () => {
+    const spawnAsyncMock = jest
+      .spyOn(subprocess, "spawnAsync")
+      .mockImplementation(async () => {
+        return {
+          stdout: "",
+          status: 1,
+          stderr: "FAILED BECAUSE OF FOO",
+          cmdline: "chmod +x /tmp/poopoo",
+        };
+      });
+
+    const res = await runCommand("chmod", ["x", "/tmp/poopoo"])();
+    expect(res.success).toBeFalsy();
+    expect(res.errorTitle).toEqual("Command failed");
+    expect(res.errorDescription).toEqual("FAILED BECAUSE OF FOO");
+    expect(spawnAsyncMock).toBeCalledWith("chmod", ["x", "/tmp/poopoo"]);
+    expect(res.data).toEqual({
+      stdout: "",
+      status: 1,
+      stderr: "FAILED BECAUSE OF FOO",
+      cmdline: "chmod +x /tmp/poopoo",
+    });
   });
 });

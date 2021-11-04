@@ -1,6 +1,6 @@
 import { InstallerStepFn } from "./types";
 import { platform, cpus, totalmem } from "os";
-import { spawnAsync } from "./subprocess";
+import { spawnAsync, spawnAsyncResult } from "./subprocess";
 
 // this is for mocking purposes (as you cannot mock os.platform directly)
 export const getOsPlatform = () => platform();
@@ -83,6 +83,29 @@ export const verifyMinCpuRequirements =
         errorTitle: `This system does not meet minimum requirements`,
         errorDescription: `Minimum system CPU requirments ${minCpuCores} logical cores`,
         data: { cpuCores, minCpuCores },
+      };
+    }
+  };
+
+export const runCommand =
+  (
+    command: string,
+    args?: readonly string[]
+  ): InstallerStepFn<spawnAsyncResult> =>
+  async () => {
+    const res = await spawnAsync(command, args);
+    if (res.status === 0) {
+      return {
+        success: true,
+        successText: "OK",
+        data: res,
+      };
+    } else {
+      return {
+        success: false,
+        errorTitle: `Command failed`,
+        errorDescription: res.stderr,
+        data: res,
       };
     }
   };

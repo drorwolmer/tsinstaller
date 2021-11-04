@@ -1,4 +1,8 @@
-import { spawnAsync, spawnBashSelfExtractAsync } from "./subprocess";
+import {
+  spawnAsync,
+  spawnBashSelfExtractAsync,
+  spawnAsyncResult,
+} from "./subprocess";
 import { InstallerStepFn } from "./types";
 import * as semver from "semver";
 import Table from "cli-table";
@@ -159,14 +163,7 @@ export type dockerComposeUpOptions = {
   temporaryDir?: string; // Needed sometimes because of https://github.com/docker/compose/issues/4137
 };
 export const dockerComposeUp =
-  (
-    options: dockerComposeUpOptions
-  ): InstallerStepFn<{
-    stdout: string;
-    stderr: string;
-    status: number;
-    cmdline: string;
-  }> =>
+  (options: dockerComposeUpOptions): InstallerStepFn<spawnAsyncResult> =>
   async () => {
     // Either have ["-f foo", "-f bar"] or []
     const composeFilesFlag = options.composeFiles?.map((v) => `-f ${v}`) || [];
