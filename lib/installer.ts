@@ -53,8 +53,8 @@ export const startInstaller = async (steps: Step[], header?: string) => {
 
   for (const { title, f } of steps) {
     const res = await step(title, f);
+    logToFile(`${JSON.stringify(Object.assign({"title" : title}, res ), null)}`);
     if (res.success && res.successDebug !== undefined) {
-      logToFile(`${JSON.stringify(Object.assign({"title" : title}, res ), null)}`);
       console.info(res.successDebug);
     }
     if (process.env.DEBUG === "1") {
@@ -62,7 +62,6 @@ export const startInstaller = async (steps: Step[], header?: string) => {
     }
     if (!res.success) {
       if (res.errorDescription !== undefined) {
-        logToFile(`${JSON.stringify(Object.assign({"title" : title}, res), null)}`);
         console.error(res.errorDescription);
       }
       console.error(`Installation failed, further info can be found on: ${LOG_PATH}`);
