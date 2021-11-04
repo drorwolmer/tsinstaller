@@ -40,7 +40,7 @@ describe("URL tests", () => {
   it("getUrlStatus with bad IP reaches timeout", async () => {
     let error;
     try {
-      await getUrlStatus("https://10.4.20.240", 1);
+      await getUrlStatus("https://10.4.20.240", undefined, 1);
     } catch (e) {
       error = e as AxiosError;
     }
@@ -277,95 +277,41 @@ describe("URL tests", () => {
     const requiredUrls: RequiredUrl[] = [
       {
         url: "https://auth.docker.io",
-        expectedStatus: [404],
-      },
+        expectedStatus: [200],
+      }
+    ];
+
+    const getUrlStatusMock = jest
+    .spyOn(network, "getUrlStatus")
+    .mockImplementation(
+      () => 
+        Promise.resolve(200)
+    );
+  
+
+    const res = await verifyAllUrls(requiredUrls,"http://@localhost:1234")();
+    expect(res.success).toBeTruthy();
+    expect(res.data).toEqual([
+      {
+        success: true,
+        requiredUrl: requiredUrls[0],
+        status: 200,
+        text: "OK",
+      }
+    ]);
+    expect(getUrlStatusMock).toBeCalledTimes(1);
+    expect(getUrlStatusMock).toBeCalledWith("https://auth.docker.io", "http://@localhost:1234", 3);
+  });
+
+  it("verifyAllUrls checks all URLS with non exising proxy", async () => {
+    const requiredUrls: RequiredUrl[] = [
       {
         url: "https://google.com",
         expectedStatus: [200],
       },
     ];
 
-    const verifyAllUrlsMock = jest
-    .spyOn(network, "verifyAllUrls")
-    .mockImplementation(
-      () => () =>
-        Promise.resolve({
-          success: true,
-          data: [
-            {
-              success: true,
-              requiredUrl: requiredUrls[0],
-              status: 404,
-              text: "OK",
-            },
-            {
-              success: true,
-              requiredUrl: requiredUrls[1],
-              status: 200,
-              text: "OK",
-            },
-          ]
-        })
-    );
-  
-
-    const res = await verifyAllUrls(requiredUrls,undefined,"http://@localhost:1234")();
-    expect(res.success).toBeTruthy();
-    expect(res.data).toEqual([
-      {
-        success: true,
-        requiredUrl: requiredUrls[0],
-        status: 404,
-        text: "OK",
-      },
-      {
-        success: true,
-        requiredUrl: requiredUrls[1],
-        status: 200,
-        text: "OK",
-      },
-    ]);
-    expect(verifyAllUrlsMock).toBeCalledTimes(1);
-  });
-
-  it("verifyAllUrls checks all URLS with proxy fails", async () => {
-    const requiredUrls: RequiredUrl[] = [
-      {
-        url: "https://auth.docker.io",
-        expectedStatus: [404],
-      }
-    ];
-
-    const verifyAllUrlsMock = jest
-    .spyOn(network, "verifyAllUrls")
-    .mockImplementation(
-      () => () =>
-        Promise.resolve({
-          success: false,
-          data: [
-            {
-              success: false,
-              requiredUrl: requiredUrls[0],
-              status: 404,
-              text: "something broke",
-            },
-          ]
-        })
-    );
-  
-
-    const res = await verifyAllUrls(requiredUrls,undefined,"http://@localhost:1234")();
+    const res = await verifyAllUrls(requiredUrls,"http://noproxy:1234")();
     expect(res.success).toBeFalsy();
-    expect(res.data).toEqual([
-      {
-        success: false,
-        requiredUrl: requiredUrls[0],
-        status: 404,
-        text: "something broke",
-      }
-    ]);
-    expect(verifyAllUrlsMock).toBeCalledTimes(1);
   });
-
-  
 });

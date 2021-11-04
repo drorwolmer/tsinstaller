@@ -21,8 +21,8 @@ export type UrlResult = {
 
 export const getUrlStatus = async (
   url: string,
-  timeoutSeconds = WEB_REQUEST_TIMEOUT_SECONDS,
   proxyUrl?: string,
+  timeoutSeconds = WEB_REQUEST_TIMEOUT_SECONDS,
   ) => {
 
   let agent = undefined;
@@ -41,13 +41,13 @@ export const getUrlStatus = async (
 export const verifyAllUrls =
   (
     requiredUrls: RequiredUrl[],
+    proxyUrl?: string,
     timeoutSeconds = WEB_REQUEST_TIMEOUT_SECONDS,
-    proxyUrl?: string
   ): InstallerStepFn<UrlResult[]> =>
   async () => {
     const data: UrlResult[] = [];
     const promisesResults = await Promise.allSettled(
-      requiredUrls.map(({ url }) => getUrlStatus(url, timeoutSeconds, proxyUrl)));
+      requiredUrls.map(({ url }) => getUrlStatus(url, proxyUrl, timeoutSeconds)));
 
     let successFlag = true;
 
