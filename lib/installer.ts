@@ -53,7 +53,7 @@ export const startInstaller = async (steps: Step[], header?: string) => {
 
   for (const { title, f } of steps) {
     const res = await step(title, f);
-    logToFile(`${JSON.stringify(Object.assign({"title" : title}, res ), null)}`);
+    logToFile(JSON.stringify({...{"title" : title}, ...res}, null));
     if (res.success && res.successDebug !== undefined) {
       console.info(res.successDebug);
     }
