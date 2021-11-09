@@ -32,6 +32,7 @@
     "https-proxy-agent": "^5.0.0",
     "jest": "^27.2.5",
     "log-symbols": "4.1.0",
+    "moment": "^2.29.1",
     "ora": "5.4.1",
     "pkg": "^5.3.3",
     "semver": "^7.3.5",
