@@ -3,7 +3,9 @@ import { InstallerStepFn } from "./types";
 import { sleep, zip } from "./utils";
 import Table from "cli-table";
 import clc from "cli-color";
-import httpsProxyAgent from "https-proxy-agent";
+import httpsProxyAgent, { HttpsProxyAgent } from "https-proxy-agent";
+import { URL } from "url";
+import * as net from "net";
 
 export const WEB_REQUEST_TIMEOUT_SECONDS = 3;
 export type RequiredUrl = {
@@ -30,18 +32,70 @@ export const getUrlStatus = async (
 ) => {
   const timeoutSeconds = config.timeoutSeconds || WEB_REQUEST_TIMEOUT_SECONDS;
 
-  let agent = undefined;
+  let agent: HttpsProxyAgent | undefined;
   if (config.proxyUrl) {
-    agent = httpsProxyAgent(config.proxyUrl);
+    const parsedUrl = new URL(config.proxyUrl);
+    agent = httpsProxyAgent({
+      protocol: parsedUrl.protocol,
+      host: parsedUrl.hostname,
+      port: parsedUrl.port,
+      auth: parsedUrl.username
+        ? parsedUrl.username + ":" + parsedUrl.password
+        : undefined,
+      timeout: timeoutSeconds * 1000,
+    });
   }
 
   const res = await axios.get(url, {
     timeout: timeoutSeconds * 1000,
     validateStatus: (s) => true, // Do not fail if status is > 4xx
+    httpAgent: agent,
     httpsAgent: agent,
   });
 
   return res.status;
+};
+
+export const getPortFromUrl = (url: string) => {
+  let port = new URL(url).port;
+  if (port === "" && url.startsWith("https://")) {
+    return 443;
+  }
+  if (port === "" && url.startsWith("http://")) {
+    return 80;
+  }
+  return parseInt(port);
+};
+
+export const verifyProxyConnection = async (
+  proxyUrl: string,
+  timeoutSeconds: number = WEB_REQUEST_TIMEOUT_SECONDS
+) => {
+  const port = getPortFromUrl(proxyUrl);
+  const host = new URL(proxyUrl).hostname;
+  const promise = new Promise<void>((resolve, reject) => {
+    const socket = new net.Socket();
+
+    const onError = (err: any) => {
+      socket.destroy();
+      reject(err);
+    };
+
+    socket.setTimeout(timeoutSeconds * 1000);
+    socket.once("error", onError);
+    socket.once("timeout", () => {
+      onError({
+        code: "ETIMEOUT",
+        message: `Timed out after ${timeoutSeconds} seconds`,
+      });
+    });
+
+    socket.connect(port, host, () => {
+      socket.end();
+      resolve();
+    });
+  });
+  return promise;
 };
 
 export const verifyAllUrls =
@@ -50,6 +104,27 @@ export const verifyAllUrls =
     config: GetUrlStatusConfig = {}
   ): InstallerStepFn<UrlResult[]> =>
   async () => {
+    if (config.proxyUrl) {
+      try {
+        await verifyProxyConnection(
+          config.proxyUrl,
+          config.timeoutSeconds || WEB_REQUEST_TIMEOUT_SECONDS
+        );
+      } catch (error) {
+        let errorDescription = (error as Error).message;
+        if ((error as NodeJS.ErrnoException).code === "ECONNREFUSED") {
+          errorDescription = `Connection refused to proxy ${config.proxyUrl}`;
+        } else if ((error as NodeJS.ErrnoException).code === "ETIMEOUT") {
+          errorDescription = `Timed out connecting to proxy ${config.proxyUrl}`;
+        }
+        return {
+          success: false,
+          errorTitle: "Failed to connect to proxy",
+          errorDescription: errorDescription,
+        };
+      }
+    }
+
     const data: UrlResult[] = [];
     const promisesResults = await Promise.allSettled(
       requiredUrls.map(({ url }) => getUrlStatus(url, config))
@@ -66,12 +141,25 @@ export const verifyAllUrls =
 
         if (axios.isAxiosError(promise.reason)) {
           axiosError = promise.reason as AxiosError;
+
           if (axiosError.code === "ECONNABORTED") {
             text = "Request timeout";
           } else if (axiosError.code === "ENOTFOUND") {
             text = "DNS lookup failed";
           } else if (axiosError.code === "CERT_HAS_EXPIRED") {
             text = axiosError.message;
+          } else if (axiosError.code === "UNABLE_TO_VERIFY_LEAF_SIGNATURE") {
+            text = "SSL error: " + axiosError.message;
+          } else if (
+            config.proxyUrl &&
+            axiosError.request?._currentRequest?.res?.statusCode
+          ) {
+            // REALLY HACKY STUFF
+            const proxyStatusCode: number | undefined =
+              axiosError.request?._currentRequest?.res?.statusCode;
+            if (proxyStatusCode === 407) {
+              text = "407 Proxy Authentication Required";
+            }
           } else {
             text = axiosError.message;
           }

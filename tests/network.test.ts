@@ -7,6 +7,8 @@ import {
 } from "../lib/network";
 import * as network from "../lib/network";
 import axios, { AxiosError } from "axios";
+import httpsProxyAgent, { HttpsProxyAgent } from "https-proxy-agent";
+import { URL } from "url";
 
 describe("URL tests", () => {
   it("getUrlStatus(https://google.com) returns 200", async () => {
@@ -285,8 +287,14 @@ describe("URL tests", () => {
       .spyOn(network, "getUrlStatus")
       .mockImplementation(() => Promise.resolve(200));
 
+    const verifyProxyConnectionMock = jest
+      .spyOn(network, "verifyProxyConnection")
+      .mockImplementation(async () => {
+        return;
+      });
+
     const res = await verifyAllUrls(requiredUrls, {
-      proxyUrl: "http://@localhost:1234",
+      proxyUrl: "http://foo:bar@localhost:1234",
     })();
     expect(res.success).toBeTruthy();
     expect(res.data).toEqual([
@@ -297,10 +305,86 @@ describe("URL tests", () => {
         text: "OK",
       },
     ]);
+    expect(verifyProxyConnectionMock).toBeCalledWith(
+      "http://foo:bar@localhost:1234",
+      network.WEB_REQUEST_TIMEOUT_SECONDS
+    );
     expect(getUrlStatusMock).toBeCalledTimes(1);
     expect(getUrlStatusMock).toBeCalledWith("https://auth.docker.io", {
-      proxyUrl: "http://@localhost:1234",
+      proxyUrl: "http://foo:bar@localhost:1234",
     });
+  });
+
+  it("verifyAllUrls fails if verifyProxyConnection fails", async () => {
+    const requiredUrls: RequiredUrl[] = [
+      {
+        url: "https://auth.docker.io",
+        expectedStatus: [200],
+      },
+    ];
+
+    const getUrlStatusMock = jest
+      .spyOn(network, "getUrlStatus")
+      .mockImplementation(() => Promise.resolve(200));
+
+    const verifyProxyConnectionMock = jest
+      .spyOn(network, "verifyProxyConnection")
+      .mockImplementation(async () => {
+        throw {
+          code: "ETIMEOUT",
+          message: "Timed out after 1 seconds",
+        };
+      });
+
+    const res = await verifyAllUrls(requiredUrls, {
+      proxyUrl: "http://foo:bar@localhost:1234",
+    })();
+
+    expect(res).toEqual({
+      success: false,
+      errorTitle: "Failed to connect to proxy",
+      errorDescription:
+        "Timed out connecting to proxy http://foo:bar@localhost:1234",
+    });
+
+    expect(getUrlStatusMock).toBeCalledTimes(0);
+
+    expect(network.verifyProxyConnection).toHaveBeenCalledWith(
+      "http://foo:bar@localhost:1234",
+      network.WEB_REQUEST_TIMEOUT_SECONDS
+    );
+  });
+
+  it("getPortFromUrl sanity", () => {
+    expect(network.getPortFromUrl("http://localhost:1234")).toEqual(1234);
+    expect(network.getPortFromUrl("https://localhost:1234")).toEqual(1234);
+    expect(network.getPortFromUrl("http://localhost")).toEqual(80);
+    expect(network.getPortFromUrl("https://foo.com")).toEqual(443);
+  });
+
+  it("verifyProxyConnection raises timeout [integration]", async () => {
+    try {
+      await network.verifyProxyConnection("http://foo:bar@1.1.1.1:8888", 1);
+      fail("should have thrown");
+    } catch (error) {
+      expect(error).toEqual({
+        code: "ETIMEOUT",
+        message: "Timed out after 1 seconds",
+      });
+    }
+  });
+
+  it("verifyProxyConnection raises connection refused", async () => {
+    try {
+      await network.verifyProxyConnection("http://localhost:12311", 1);
+      fail("should have thrown");
+    } catch (error) {
+      expect((error as NodeJS.ErrnoException).code).toEqual("ECONNREFUSED");
+    }
+  });
+
+  it("verifyProxyConnection succeeds [integration]", async () => {
+    await network.verifyProxyConnection("http://google.com:80", 1);
   });
 
   it("verifyAllUrls checks all URLS with non exising proxy", async () => {
