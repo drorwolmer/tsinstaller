@@ -1,4 +1,4 @@
-import { Logger } from "../utils/logsHandler";
+import { Logger } from "../lib/logsHandler";
 import {readFileSync,existsSync} from "fs";
 
 describe("Logger tests", () => {
