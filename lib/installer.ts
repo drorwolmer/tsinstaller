@@ -3,7 +3,7 @@ import { cyan, bold, green, red } from "cli-color";
 import { Step, StepResult, InstallerConfiguration } from "./types";
 import logSymbols from "log-symbols";
 import { InstallerStepFn } from "./types";
-import { Logger} from "../utils/logsHandler";
+import { Logger} from "./logsHandler";
 
 const sp = {
   interval: 80,
