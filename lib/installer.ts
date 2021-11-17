@@ -53,7 +53,7 @@ export const startInstaller = async (steps: Step[], config: InstallerConfigurati
   const logger = new Logger(config.loggerFileName)
   for (const { title, f } of steps) {
     const res = await step(title, f);
-    logger.logToFile(JSON.stringify({...{"title" : title}, ...res}, null));
+    logger.logToFile(JSON.stringify({title, ...res}, null));
     if (res.success && res.successDebug !== undefined) {
       console.info(res.successDebug);
     }
