@@ -6,6 +6,7 @@ import clc from "cli-color";
 import httpsProxyAgent, { HttpsProxyAgent } from "https-proxy-agent";
 import { URL } from "url";
 import * as net from "net";
+import { env } from 'process';
 
 export const WEB_REQUEST_TIMEOUT_SECONDS = 3;
 export type RequiredUrl = {
@@ -96,6 +97,53 @@ export const verifyProxyConnection = async (
     });
   });
   return promise;
+};
+
+export const verifyProxyInput =
+  (): InstallerStepFn =>
+  async () => {
+    if((env.proxy || env.proxyport) && !(env.proxy && env.proxyport)){
+      return {
+        success: false,
+        errorDescription: `Both proxy ip and port must be provided in order to configure proxy. Only one was provided.`,
+        errorTitle: `Invalid proxy configuration`,
+        data: `proxy ip: ${env.proxy}, proxy port: ${env.proxyport}`,
+      };
+    }
+    if((env.proxypwd || env.proxyuser) && !(env.proxypwd && env.proxyuser)){
+      return {
+        success: false,
+        errorDescription: `Both proxy user and password must be provided in order to configure proxy authentication. Only one was provided.`,
+        errorTitle: `Invalid proxy configuration`,
+        data: `proxy user: ${env.proxyuser}, proxy password: ${env.proxypwd}`,
+      };
+    }
+    if((env.proxypwd || env.proxyuser) && (env.proxypwd && env.proxyuser)){
+      return {
+        success: false,
+        errorDescription: `Proxy authentication cannot be configured without proxy ip and port.`,
+        errorTitle: `Invalid proxy configuration`,
+        data: `proxy ip: ${env.proxyuser}, proxy port: ${env.proxypwd}`,
+      };
+    }
+    return {
+      success: true,
+      successText: "OK"
+    };
+  };
+    
+export const getProxyUrlFromEnv = () => {
+  if(env.proxy && env.proxyport ){
+    if(env.proxyuser && env.proxypwd ){
+      return `http://${env.proxyuser}:${env.proxypwd}@${env.proxy}:${env.proxyport}`
+    }
+    else {
+      return `http://${env.proxy}:${env.proxyport}`
+    }
+  }
+  else {
+    return undefined
+  }
 };
 
 export const verifyAllUrls =

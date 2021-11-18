@@ -4,6 +4,8 @@ import {
   UrlResult,
   verifyAllUrls,
   verifyUrlReady,
+  verifyProxyInput,
+  getProxyUrlFromEnv
 } from "../lib/network";
 import * as network from "../lib/network";
 import axios, { AxiosError } from "axios";
@@ -400,4 +402,69 @@ describe("URL tests", () => {
     })();
     expect(res.success).toBeFalsy();
   });
+});
+
+describe("Proxy env tests", () => {
+  beforeEach(() => {
+      delete process.env.proxy
+      delete process.env.proxyport
+      delete process.env.proxypwd
+      delete process.env.proxyuser
+    });
+
+  it("gets valid proxy url", async () => {
+      process.env.proxy = "1.1.1.1"
+      process.env.proxyport = "8080"
+      const res = await verifyProxyInput()()
+      expect(res.success).toBeTruthy();
+  });
+
+  it("gets invalid proxy ip and port", async () => {
+      process.env.proxy = "1.1.1.1"
+      const res = await verifyProxyInput()()
+      expect(res.success).toBeFalsy();
+      expect(res.errorTitle).toEqual("Invalid proxy configuration")
+      expect(res.errorDescription).toEqual("Both proxy ip and port must be provided in order to configure proxy. Only one was provided.")
+  });
+
+  it("gets invalid proxy ip and port", async () => {
+      process.env.proxy = "1.1.1.1"
+      process.env.proxyport = "8080"
+      process.env.proxypwd = "1234"
+      const res = await verifyProxyInput()()
+      expect(res.success).toBeFalsy();
+      expect(res.errorTitle).toEqual("Invalid proxy configuration")
+      expect(res.errorDescription).toEqual("Both proxy user and password must be provided in order to configure proxy authentication. Only one was provided.")
+  });
+
+  it("gets proxy auth without proxy ip and port", async () => {
+      process.env.proxypwd = "1234"
+      process.env.proxyuser = "haminet"
+      const res = await verifyProxyInput()()
+      expect(res.success).toBeFalsy();
+      expect(res.errorTitle).toEqual("Invalid proxy configuration")
+      expect(res.errorDescription).toEqual("Proxy authentication cannot be configured without proxy ip and port.")
+  });
+
+  it("get proxy url from env", async () => {
+      process.env.proxy = "1.1.1.1"
+      process.env.proxyport = "8080"
+      const url = getProxyUrlFromEnv()
+      expect(url).toEqual("http://1.1.1.1:8080")
+  });
+
+  it("get proxy url from env with auth", async () => {
+      process.env.proxy = "1.1.1.1"
+      process.env.proxyport = "8080"
+      process.env.proxypwd = "420"
+      process.env.proxyuser = "haminet"
+      const url = getProxyUrlFromEnv()
+      expect(url).toEqual("http://haminet:420@1.1.1.1:8080")
+  });
+  
+  it("get proxy url from env while not set", async () => {
+      const url = getProxyUrlFromEnv()
+      expect(url).toEqual(undefined)
+  });
+
 });
