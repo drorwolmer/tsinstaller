@@ -6,7 +6,6 @@ import clc from "cli-color";
 import httpsProxyAgent, { HttpsProxyAgent } from "https-proxy-agent";
 import { URL } from "url";
 import * as net from "net";
-import { env } from 'process';
 
 export const WEB_REQUEST_TIMEOUT_SECONDS = 3;
 export type RequiredUrl = {
