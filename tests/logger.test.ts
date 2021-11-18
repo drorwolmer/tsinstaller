@@ -6,8 +6,8 @@ describe("Logger tests", () => {
         const message = "logged message"
         const logger = new Logger()
         logger.logToFile(message)
-        const content = readFileSync(logger.logPath());
+        const content = readFileSync(logger.path);
         expect(content.toString()).toContain(message);
-        expect(existsSync(logger.logPath())).toBeTruthy();
+        expect(existsSync(logger.path)).toBeTruthy();
     });
   });
