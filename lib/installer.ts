@@ -1,9 +1,9 @@
 import ora from "ora";
 import { cyan, bold, green, red } from "cli-color";
-import { Step, StepResult } from "./types";
+import { Step, StepResult, InstallerConfiguration } from "./types";
 import logSymbols from "log-symbols";
 import { InstallerStepFn } from "./types";
-import { logToFile, LOG_PATH } from "./logsHandler";
+import { Logger} from "./logsHandler";
 
 const sp = {
   interval: 80,
@@ -46,14 +46,14 @@ const step = async (title: string, f: InstallerStepFn) => {
   return res;
 };
 
-export const startInstaller = async (steps: Step[], header?: string) => {
-  if (header) {
-    console.info(header);
+export const startInstaller = async (steps: Step[], config: InstallerConfiguration = {}) => {
+  if (config.header) {
+    console.info(config.header);
   }
-
+  const logger = new Logger(config.loggerFileName)
   for (const { title, f } of steps) {
     const res = await step(title, f);
-    logToFile(JSON.stringify({ ...res, title }, null));
+    logger.logToFile(JSON.stringify({title, ...res}, null));
     if (res.success && res.successDebug !== undefined) {
       console.info(res.successDebug);
     }
@@ -64,9 +64,7 @@ export const startInstaller = async (steps: Step[], header?: string) => {
       if (res.errorDescription !== undefined) {
         console.error(res.errorDescription);
       }
-      console.error(
-        `Installation failed, further info can be found on: ${LOG_PATH}`
-      );
+      console.error(`Installation failed, further info can be found on: ${logger.filePath}`);
       process.exit(1);
     }
   }

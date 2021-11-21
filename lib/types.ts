@@ -23,3 +23,8 @@ export type Step = {
   title: string;
   f: InstallerStepFn;
 };
+
+export type InstallerConfiguration = {
+  header?: string;
+  loggerFileName?: string; 
+}

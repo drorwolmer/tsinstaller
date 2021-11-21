@@ -1,13 +1,18 @@
-import { appendFileSync } from "fs";
-import { tmpdir } from "os";
-import { join } from "path";
-import moment from "moment";
+import {appendFileSync} from "fs";
+import {tmpdir} from "os";
+import {join} from "path";
+import moment from 'moment';
 
-const LOG_FILE_NAME = `installer-${moment(new Date()).format(
-  "YYYY-MM-DDThmmss"
-)}.log`;
-export const LOG_PATH = join(tmpdir(), LOG_FILE_NAME);
+export class Logger {
+    filePath: string;
+    
+    constructor(name?: string) {
+        const fileName = `${name || "installer"}-${moment(new Date()).format('YYYY-MM-DDThmmss')}.log`
+        this.filePath = join(tmpdir(), fileName)
+    }
 
-export const logToFile = (message: string) => {
-  appendFileSync(LOG_PATH, `[INFO] ${new Date().toISOString()} ${message}\n`);
-};
+    logToFile(message: string) {
+        appendFileSync(this.filePath, `[INFO] ${new Date().toISOString()} ${message}\n`)
+    }
+
+}

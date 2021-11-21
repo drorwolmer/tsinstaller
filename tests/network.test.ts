@@ -3,7 +3,7 @@ import {
   RequiredUrl,
   UrlResult,
   verifyAllUrls,
-  verifyUrlReady,
+  verifyUrlReady
 } from "../lib/network";
 import * as network from "../lib/network";
 import axios, { AxiosError } from "axios";
@@ -401,3 +401,4 @@ describe("URL tests", () => {
     expect(res.success).toBeFalsy();
   });
 });
+
