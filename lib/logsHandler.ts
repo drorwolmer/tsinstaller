@@ -4,12 +4,11 @@ import {join} from "path";
 import moment from 'moment';
 
 export class Logger {
-    name: string;
     pathToLogFile: string;
     
     constructor(name?: string) {
-        this.name = `${name || "installer"}-${moment(new Date()).format('YYYY-MM-DDThmmss')}.log`
-        this.pathToLogFile = join(tmpdir(), this.name)
+        const fileName = `${name || "installer"}-${moment(new Date()).format('YYYY-MM-DDThmmss')}.log`
+        this.pathToLogFile = join(tmpdir(), fileName)
     }
 
     logToFile(message: string) {
