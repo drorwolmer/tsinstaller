@@ -64,7 +64,7 @@ export const startInstaller = async (steps: Step[], config: InstallerConfigurati
       if (res.errorDescription !== undefined) {
         console.error(res.errorDescription);
       }
-      console.error(`Installation failed, further info can be found on: ${logger.pathToLogFile}`);
+      console.error(`Installation failed, further info can be found on: ${logger.filePath}`);
       process.exit(1);
     }
   }
