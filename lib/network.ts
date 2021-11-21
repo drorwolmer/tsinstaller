@@ -196,7 +196,11 @@ export const verifyAllUrls =
 
     const table = new Table({
       head: ["URL", "status"],
-      style: { head: ["bold"] },
+      style: { head: ["bold"], },
+      chars: { 'top': '-' , 'top-mid': '-' , 'top-left': '.' , 'top-right': '.'
+      , 'bottom': '-' , 'bottom-mid': '-' , 'bottom-left': '\'' , 'bottom-right': '\''
+      , 'left': '|' , 'left-mid': '|' , 'mid': '-' , 'mid-mid': '+'
+      , 'right': '|' , 'right-mid': '|' , 'middle': '|' },
     });
 
     // We dont want to sort in place, so we create a copy of the array
