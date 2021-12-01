@@ -3,7 +3,8 @@ import { InstallerStepFn } from "./types";
 import { sleep, zip } from "./utils";
 import Table from "cli-table";
 import clc from "cli-color";
-import httpsProxyAgent, { HttpsProxyAgent } from "https-proxy-agent";
+import createHttpsProxyAgent, { HttpsProxyAgent } from "https-proxy-agent";
+import createHttpProxyAgent, { HttpProxyAgent } from "http-proxy-agent";
 import { URL } from "url";
 import * as net from "net";
 
@@ -32,10 +33,20 @@ export const getUrlStatus = async (
 ) => {
   const timeoutSeconds = config.timeoutSeconds || WEB_REQUEST_TIMEOUT_SECONDS;
 
-  let agent: HttpsProxyAgent | undefined;
+  let httpProxyAgent: HttpProxyAgent | undefined;
+  let httpsProxyAgent: HttpsProxyAgent | undefined;
   if (config.proxyUrl) {
     const parsedUrl = new URL(config.proxyUrl);
-    agent = httpsProxyAgent({
+    httpsProxyAgent = createHttpsProxyAgent({
+      protocol: parsedUrl.protocol,
+      host: parsedUrl.hostname,
+      port: parsedUrl.port,
+      auth: parsedUrl.username
+        ? parsedUrl.username + ":" + parsedUrl.password
+        : undefined,
+      timeout: timeoutSeconds * 1000,
+    });
+    httpProxyAgent = createHttpProxyAgent({
       protocol: parsedUrl.protocol,
       host: parsedUrl.hostname,
       port: parsedUrl.port,
@@ -49,8 +60,8 @@ export const getUrlStatus = async (
   const res = await axios.get(url, {
     timeout: timeoutSeconds * 1000,
     validateStatus: (s) => true, // Do not fail if status is > 4xx
-    httpAgent: agent,
-    httpsAgent: agent,
+    httpAgent: httpProxyAgent,
+    httpsAgent: httpsProxyAgent,
   });
 
   return res.status;
@@ -97,7 +108,6 @@ export const verifyProxyConnection = async (
   });
   return promise;
 };
-
 
 export const verifyAllUrls =
   (
@@ -196,11 +206,24 @@ export const verifyAllUrls =
 
     const table = new Table({
       head: ["URL", "status"],
-      style: { head: ["bold"], },
-      chars: { 'top': '-' , 'top-mid': '-' , 'top-left': '.' , 'top-right': '.'
-      , 'bottom': '-' , 'bottom-mid': '-' , 'bottom-left': '\'' , 'bottom-right': '\''
-      , 'left': '|' , 'left-mid': '|' , 'mid': '-' , 'mid-mid': '+'
-      , 'right': '|' , 'right-mid': '|' , 'middle': '|' },
+      style: { head: ["bold"] },
+      chars: {
+        top: "-",
+        "top-mid": "-",
+        "top-left": ".",
+        "top-right": ".",
+        bottom: "-",
+        "bottom-mid": "-",
+        "bottom-left": "'",
+        "bottom-right": "'",
+        left: "|",
+        "left-mid": "|",
+        mid: "-",
+        "mid-mid": "+",
+        right: "|",
+        "right-mid": "|",
+        middle: "|",
+      },
     });
 
     // We dont want to sort in place, so we create a copy of the array
