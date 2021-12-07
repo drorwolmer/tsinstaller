@@ -1,6 +1,6 @@
 {
   "name": "tsinstaller",
-  "version": "0.0.21",
+  "version": "0.0.22",
   "description": "Extensible installer written in TypeScript",
   "scripts": {
     "build": "tsc",
@@ -28,6 +28,7 @@
     "check-disk-space": "^3.0.1",
     "cli-color": "^2.0.0",
     "cli-table": "^0.3.6",
+    "envfile": "^6.17.0",
     "esbuild": "^0.13.5",
     "http-proxy-agent": "^5.0.0",
     "https-proxy-agent": "^5.0.0",
