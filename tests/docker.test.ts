@@ -1,5 +1,6 @@
 import {
   dockerComposeUp,
+  dockerComposeUpStep,
   getDockerComposeVersion,
   getDockerVersion,
 } from "../lib/docker";
@@ -180,7 +181,9 @@ describe("Docker tests", () => {
         };
       });
 
-    const res = await dockerComposeUp({ projectDirectory: "/tmp/foo" })();
+    const res = await docker.dockerComposeUpStep({
+      projectDirectory: "/tmp/foo",
+    })();
 
     expect(res.success).toBeTruthy();
     expect(res.successText).toEqual("OK");
@@ -208,7 +211,7 @@ describe("Docker tests", () => {
         };
       });
 
-    const res = await dockerComposeUp({
+    const res = await dockerComposeUpStep({
       projectDirectory: "/tmp/foo",
       composeFiles: ["docker-compose.yml", "docker-compose.prod.yml"],
     })();
@@ -243,7 +246,7 @@ describe("Docker tests", () => {
         };
       });
 
-    const res = await dockerComposeUp({
+    const res = await dockerComposeUpStep({
       projectDirectory: "/tmp/foo",
       temporaryDir: "/path/to/newTemp",
     })();
@@ -275,7 +278,7 @@ describe("Docker tests", () => {
         };
       });
 
-    const res = await docker.dockerComposeUp({
+    const res = await docker.dockerComposeUpStep({
       projectDirectory: "/tmp/foo",
       composeFiles: ["docker-compose.yml", "docker-compose.prod.yml"],
     })();

@@ -162,22 +162,28 @@ export type dockerComposeUpOptions = {
   composeFiles?: string[];
   temporaryDir?: string; // Needed sometimes because of https://github.com/docker/compose/issues/4137
 };
-export const dockerComposeUp =
+
+export const dockerComposeUp = async (
+  options: dockerComposeUpOptions
+): Promise<spawnAsyncResult> => {
+  // Either have ["-f foo", "-f bar"] or []
+  const composeFilesFlag = options.composeFiles?.map((v) => `-f ${v}`) || [];
+
+  let env: NodeJS.ProcessEnv | undefined = undefined;
+  if (options.temporaryDir) {
+    env = { ...process.env, TMPDIR: options.temporaryDir };
+  }
+
+  return spawnAsync("docker-compose", composeFilesFlag.concat(["up", "-d"]), {
+    cwd: options.projectDirectory,
+    env,
+  });
+};
+
+export const dockerComposeUpStep =
   (options: dockerComposeUpOptions): InstallerStepFn<spawnAsyncResult> =>
   async () => {
-    // Either have ["-f foo", "-f bar"] or []
-    const composeFilesFlag = options.composeFiles?.map((v) => `-f ${v}`) || [];
-
-    let env: NodeJS.ProcessEnv | undefined = undefined;
-    if (options.temporaryDir) {
-      env = { ...process.env, TMPDIR: options.temporaryDir };
-    }
-
-    const { cmdline, stdout, stderr, status } = await spawnAsync(
-      "docker-compose",
-      composeFilesFlag.concat(["up", "-d"]),
-      { cwd: options.projectDirectory, env }
-    );
+    const { cmdline, stdout, stderr, status } = await dockerComposeUp(options);
 
     if (status !== 0) {
       return {
