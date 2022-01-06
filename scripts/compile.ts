@@ -34,7 +34,7 @@ const getCompileTimeVariablesFromEnv = (): EnvMapping => {
 
 const all = async () => {
   console.info(clc.bold("[+] Deleting dist/ dir"));
-  rmSync("dist/", { recursive: true });
+  rmSync("dist/", { recursive: true, force: true });
 
   const { compileSteps }: { compileSteps: InstallerFn } = await import(
     recepieFile
@@ -46,6 +46,10 @@ const all = async () => {
   );
   console.error({ stdout, status, stderr, cmdline });
 
+  if (status !== 0) {
+    throw new Error(`Failed to package ${stderr}`);
+  }
+
   console.info(
     clc.bold("[+] Build time args "),
     getCompileTimeVariablesFromEnv(),
@@ -55,9 +59,13 @@ const all = async () => {
 
   console.info(clc.bold("[+] Creating single binary executable"));
   ({ stdout, status, stderr, cmdline } = await spawnBashAsync(
-    `pkg -t ${PKG_TARGET} ${INSTALLER_JS_BUNDLE} -o ${INPUT_BINARY}`
+    `pkg --config package.json --targets ${PKG_TARGET} ${INSTALLER_JS_BUNDLE} --output ${INPUT_BINARY}`
   ));
   console.error({ stdout, status, stderr, cmdline });
+
+  if (status !== 0) {
+    throw new Error(`Failed to package ${stderr}`);
+  }
 
   console.info(
     clc.bold(
