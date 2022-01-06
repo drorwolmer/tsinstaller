@@ -3,7 +3,8 @@ import { cyan, bold, green, red } from "cli-color";
 import { Step, StepResult, InstallerConfiguration } from "./types";
 import logSymbols from "log-symbols";
 import { InstallerStepFn } from "./types";
-import { Logger} from "./logsHandler";
+import { Logger } from "./logsHandler";
+import { COMPILE_TIME_VARIABLES } from ".";
 
 const sp = {
   interval: 80,
@@ -46,14 +47,22 @@ const step = async (title: string, f: InstallerStepFn) => {
   return res;
 };
 
-export const startInstaller = async (steps: Step[], config: InstallerConfiguration = {}) => {
+export const startInstaller = async (
+  steps: Step[],
+  config: InstallerConfiguration = {}
+) => {
   if (config.header) {
     console.info(config.header);
   }
-  const logger = new Logger(config.loggerFileName)
+
+  if (process.env.DEBUG === "1") {
+    console.info({ compileTimeVariables: COMPILE_TIME_VARIABLES });
+  }
+
+  const logger = new Logger(config.loggerFileName);
   for (const { title, f } of steps) {
     const res = await step(title, f);
-    logger.logToFile(JSON.stringify({title, ...res}, null));
+    logger.logToFile(JSON.stringify({ title, ...res }, null));
     if (res.success && res.successDebug !== undefined) {
       console.info(res.successDebug);
     }
@@ -64,7 +73,9 @@ export const startInstaller = async (steps: Step[], config: InstallerConfigurati
       if (res.errorDescription !== undefined) {
         console.error(res.errorDescription);
       }
-      console.error(`Installation failed, further info can be found on: ${logger.filePath}`);
+      console.error(
+        `Installation failed, further info can be found on: ${logger.filePath}`
+      );
       process.exit(1);
     }
   }

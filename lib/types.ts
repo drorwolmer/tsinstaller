@@ -1,4 +1,7 @@
 import { Ora } from "ora";
+export interface EnvMapping {
+  [key: string]: string;
+}
 
 export type Entry = {
   offset: number;
@@ -26,5 +29,5 @@ export type Step = {
 
 export type InstallerConfiguration = {
   header?: string;
-  loggerFileName?: string; 
-}
+  loggerFileName?: string;
+};

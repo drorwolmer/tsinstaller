@@ -1,5 +1,3 @@
-import * as path from "path";
-
 import {
   createArchive,
   InstallerFn,
@@ -16,6 +14,7 @@ import { startInstaller } from "tsinstaller/dist/lib/installer";
 import { RequiredUrl, verifyAllUrls } from "tsinstaller/dist/lib/network";
 import { verifyRoot, verifyLinuxServiceEnabled } from "tsinstaller/dist/lib/os";
 import { Step, InstallerStepFn } from "tsinstaller/dist/lib/types";
+import { COMPILE_TIME_VARIABLES, setEnvFileStep } from "tsinstaller";
 
 const PART__DOCKER_IMAGES = "docker_images";
 const PART__INSTALL_FILES = "install_files";
@@ -86,6 +85,12 @@ export const installSteps: Step[] = [
   {
     title: "Extracting installation files",
     f: untar(PART__INSTALL_FILES, "/tmp/tsinstaller_example/"),
+  },
+  {
+    title: "Set env variables",
+    f: setEnvFileStep("/tmp/tsinstaller_example/.env.txt", {
+      FOO: COMPILE_TIME_VARIABLES["FOO"] || "bar",
+    }),
   },
 ];
 

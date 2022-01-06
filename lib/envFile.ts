@@ -1,10 +1,7 @@
 import { parse, stringify } from "envfile";
 import * as fs from "fs";
-import { InstallerStepFn } from "./types";
-
-interface EnvMapping {
-  [key: string]: string;
-}
+import * as path from "path";
+import { EnvMapping, InstallerStepFn } from "./types";
 
 export const readEnvValues = (envFile: fs.PathLike): EnvMapping => {
   return parse(fs.readFileSync(envFile, "utf-8"));
@@ -21,6 +18,17 @@ export const setEnvFile = (envFile: fs.PathLike, env: EnvMapping) => {
     fs.writeFileSync(envFile, stringify(newEnv));
   }
 };
+
+export const getCompileTimeVariables = (): EnvMapping => {
+  const envFile = path.join(__dirname, ".build.env");
+  if (!fs.existsSync(envFile)) {
+    console.warn("readCompileTimeVariables() env file not found in ", envFile);
+    return {};
+  }
+  return readEnvValues(envFile);
+};
+
+export const COMPILE_TIME_VARIABLES = getCompileTimeVariables();
 
 export const setEnvFileStep =
   (envFile: fs.PathLike, env: EnvMapping): InstallerStepFn<EnvMapping> =>

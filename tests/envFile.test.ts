@@ -14,6 +14,7 @@ describe("EnvFile tests", () => {
     if (fs.existsSync(ENV_TEST_FILE)) {
       fs.rmSync(ENV_TEST_FILE);
     }
+    jest.restoreAllMocks();
   });
 
   it("Writes default values and creates file if does not exist", async () => {
