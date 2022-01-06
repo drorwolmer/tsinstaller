@@ -19,17 +19,6 @@ export const setEnvFile = (envFile: fs.PathLike, env: EnvMapping) => {
   }
 };
 
-export const getCompileTimeVariables = (): EnvMapping => {
-  const envFile = path.join(__dirname, ".build.env");
-  if (!fs.existsSync(envFile)) {
-    console.warn("readCompileTimeVariables() env file not found in ", envFile);
-    return {};
-  }
-  return readEnvValues(envFile);
-};
-
-export const COMPILE_TIME_VARIABLES = getCompileTimeVariables();
-
 export const setEnvFileStep =
   (envFile: fs.PathLike, env: EnvMapping): InstallerStepFn<EnvMapping> =>
   async () => {

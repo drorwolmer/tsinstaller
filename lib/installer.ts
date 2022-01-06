@@ -4,7 +4,6 @@ import { Step, StepResult, InstallerConfiguration } from "./types";
 import logSymbols from "log-symbols";
 import { InstallerStepFn } from "./types";
 import { Logger } from "./logsHandler";
-import { COMPILE_TIME_VARIABLES } from ".";
 
 const sp = {
   interval: 80,
@@ -53,10 +52,6 @@ export const startInstaller = async (
 ) => {
   if (config.header) {
     console.info(config.header);
-  }
-
-  if (process.env.DEBUG === "1") {
-    console.info({ compileTimeVariables: COMPILE_TIME_VARIABLES });
   }
 
   const logger = new Logger(config.loggerFileName);

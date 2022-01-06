@@ -1,7 +1,8 @@
 import * as fs from "fs";
 import * as crypto from "crypto";
 import { SelfExtractingInstaller, getAllDockerImages } from "../lib/compile";
-import { getEntry } from "../lib/utils";
+import * as compile from "../lib/compile";
+import { getCompileTimeVariable, getEntry } from "../lib/utils";
 import { spawnBashSelfExtractAsync } from "../lib/subprocess";
 import * as subprocess from "../lib/subprocess";
 
@@ -16,9 +17,17 @@ const cleanupFiles = () => {
 };
 describe("Compiler tests", () => {
   beforeEach(cleanupFiles);
-  afterEach(cleanupFiles);
+  afterEach(() => {
+    cleanupFiles();
+    jest.restoreAllMocks();
+  });
 
   it("Compiler sanity", async () => {
+    jest.spyOn(compile, "getGitCommit").mockReturnValue("aaaaaeeeee");
+    jest.spyOn(compile, "getCompileTimeVariablesFromEnv").mockReturnValue({
+      ENV: "staging",
+    });
+
     // ------------------------------------------------------------------------
     // Create a new installer with two files, containg random bytes
     // ------------------------------------------------------------------------
@@ -48,6 +57,19 @@ describe("Compiler tests", () => {
       size: 12,
       offset: 432,
     });
+
+    // A variable which doesnt exist
+    expect(getCompileTimeVariable("DOES_NOT_EXIST", outputFile)).toEqual(
+      undefined
+    );
+
+    // A variable which doesnt exist
+    expect(getCompileTimeVariable("GIT_COMMIT", outputFile)).toEqual(
+      "aaaaaeeeee"
+    );
+
+    // A variable which doesnt exist
+    expect(getCompileTimeVariable("ENV", outputFile)).toEqual("staging");
 
     const res1 = await spawnBashSelfExtractAsync(
       "wc -c",

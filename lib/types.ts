@@ -31,3 +31,8 @@ export type InstallerConfiguration = {
   header?: string;
   loggerFileName?: string;
 };
+
+export type InstallerMetadata = {
+  entries: Entry[];
+  variables: EnvMapping;
+};

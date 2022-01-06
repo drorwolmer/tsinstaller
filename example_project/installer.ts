@@ -3,18 +3,20 @@ import {
   InstallerFn,
   saveDockerImagesToFile,
   SelfExtractingInstaller,
-} from "tsinstaller/dist/lib/compile";
-import {
   verifyDockerVersion,
   verifyDockerComposeVersion,
   loadDockerImages,
-} from "tsinstaller/dist/lib/docker";
-import { untar } from "tsinstaller/dist/lib/fs";
-import { startInstaller } from "tsinstaller/dist/lib/installer";
-import { RequiredUrl, verifyAllUrls } from "tsinstaller/dist/lib/network";
-import { verifyRoot, verifyLinuxServiceEnabled } from "tsinstaller/dist/lib/os";
-import { Step, InstallerStepFn } from "tsinstaller/dist/lib/types";
-import { COMPILE_TIME_VARIABLES, setEnvFileStep } from "tsinstaller";
+  untar,
+  startInstaller,
+  RequiredUrl,
+  verifyAllUrls,
+  verifyRoot,
+  verifyLinuxServiceEnabled,
+  Step,
+  InstallerStepFn,
+  getCompileTimeVariable,
+  setEnvFileStep,
+} from "tsinstaller";
 
 const PART__DOCKER_IMAGES = "docker_images";
 const PART__INSTALL_FILES = "install_files";
@@ -63,7 +65,7 @@ export const compileSteps: InstallerFn = async (
   await installer.addFile(TMP_DOCKER_TAR, PART__INSTALL_FILES);
 };
 
-export const installSteps: Step[] = [
+export const installSteps = (): Step[] => [
   {
     title: "Verifying root permissions",
     f: verifyRoot,
@@ -89,11 +91,11 @@ export const installSteps: Step[] = [
   {
     title: "Set env variables",
     f: setEnvFileStep("/tmp/tsinstaller_example/.env.txt", {
-      FOO: COMPILE_TIME_VARIABLES["FOO"] || "bar",
+      FOO: getCompileTimeVariable("FOO") || "bar",
     }),
   },
 ];
 
 if (require.main === module) {
-  startInstaller(installSteps);
+  startInstaller(installSteps());
 }

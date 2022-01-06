@@ -4,16 +4,11 @@
   "main": "index.js",
   "license": "MIT",
   "dependencies": {
-    "tsinstaller": "https://github.com/drorwolmer/tsinstaller#0.0.27"
+    "tsinstaller": "https://github.com/drorwolmer/tsinstaller#0.0.28"
   },
   "devDependencies": {
     "@types/jest": "^27.0.2",
     "@types/node": "^16.11.1",
     "jest": "^27.3.1"
-  },
-  "pkg": {
-    "assets": [
-      "dist/.build.env"
-    ]
   }
 }

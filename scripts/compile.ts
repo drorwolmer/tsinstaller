@@ -20,18 +20,6 @@ const PKG_TARGET = process.env["PKG_TARGET"] || "node16";
 
 const recepieFile = path.join(process.env.INIT_CWD || process.cwd(), RECEPIE);
 
-const getCompileTimeVariablesFromEnv = (): EnvMapping => {
-  // Allow the user to pass TS_ENVIRONMENT=production to the installer
-  // The installer will read os.env.ENVIRONMENT
-  const env: EnvMapping = {};
-  Object.keys(process.env)
-    .filter((v) => v.startsWith("TS_"))
-    .forEach((key) => {
-      env[key.replace(/^TS_/, "")] = process.env[key] as string;
-    });
-  return env;
-};
-
 const all = async () => {
   console.info(clc.bold("[+] Deleting dist/ dir"));
   rmSync("dist/", { recursive: true, force: true });
@@ -50,16 +38,9 @@ const all = async () => {
     throw new Error(`Failed to package ${stderr}`);
   }
 
-  console.info(
-    clc.bold("[+] Build time args "),
-    getCompileTimeVariablesFromEnv(),
-    COMPILE_TIME_ENV_FILE_PATH
-  );
-  setEnvFile(COMPILE_TIME_ENV_FILE_PATH, getCompileTimeVariablesFromEnv());
-
   console.info(clc.bold("[+] Creating single binary executable"));
   ({ stdout, status, stderr, cmdline } = await spawnBashAsync(
-    `pkg --config package.json --targets ${PKG_TARGET} ${INSTALLER_JS_BUNDLE} --output ${INPUT_BINARY}`
+    `pkg --targets ${PKG_TARGET} ${INSTALLER_JS_BUNDLE} --output ${INPUT_BINARY}`
   ));
   console.error({ stdout, status, stderr, cmdline });
 
