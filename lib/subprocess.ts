@@ -14,16 +14,16 @@ export const spawnAsync = async (
   options?: SpawnOptionsWithoutStdio
 ) =>
   new Promise<spawnAsyncResult>((resolve, reject) => {
-    const stdoutBuffer: Buffer[] = [];
-    const stderrBuffer: Buffer[] = [];
+    const stdoutBufferChunks: Buffer[] = [];
+    const stderrBufferChunks: Buffer[] = [];
     const spawnProcess = spawn(command, args, options);
-    spawnProcess.stdout.on("data", (data) => stdoutBuffer.push(data));
-    spawnProcess.stderr.on("data", (data) => stderrBuffer.push(data));
+    spawnProcess.stdout.on("data", (data) => stdoutBufferChunks.push(data));
+    spawnProcess.stderr.on("data", (data) => stderrBufferChunks.push(data));
 
     const finish = (code: number) => {
       return {
-        stdout: stdoutBuffer.toString(),
-        stderr: stderrBuffer.toString(),
+        stdout: Buffer.concat(stdoutBufferChunks).toString(),
+        stderr: Buffer.concat(stderrBufferChunks).toString(),
         status: code,
         cmdline: spawnProcess.spawnargs.join(" "),
       };

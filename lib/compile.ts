@@ -148,6 +148,7 @@ export class SelfExtractingInstaller {
     const entriesLengthPadded = `${entriesString.length}`.padStart(4, "0");
 
     fs.appendFileSync(this.outputFile, entriesString);
+    // TODO(DROR): This should be a 4 byte unsigned integer, not a string (limiting to 9999 bytes)
     fs.appendFileSync(this.outputFile, entriesLengthPadded);
   }
 }

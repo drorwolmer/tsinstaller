@@ -1,6 +1,7 @@
 import { spawnAsync, spawnBashAsync } from "../lib/subprocess";
 
 import * as subprocess from "../lib/subprocess";
+import { writeFileSync } from "fs";
 
 describe("Check subprocess", () => {
   it("Check ls", async () => {
@@ -94,4 +95,30 @@ describe("Check subprocess", () => {
       expect(e).toEqual(new Error("Subprocess Timeout"));
     }
   });
+
+  // ---------------------------------------------------------------------------
+  // Regression tests for bug
+  it("Reads correctly a big stream of data", async () => {
+    // Write 1000 bytes to a file
+    const file = "/tmp/bigfile.txt";
+    const data = "a".repeat(100000);
+    writeFileSync(file, data);
+
+    const { stdout, status } = await spawnAsync("cat", [file]);
+    expect(status).toBe(0);
+    expect(stdout.length).toBe(100000);
+    expect(stdout).toEqual(data);
+  });
+  it("Reads correctly a big stream of data (stderr and spawnBashAsync)", async () => {
+    // Write 1000 bytes to a file
+    const file = "/tmp/bigfile.txt";
+    const data = "a".repeat(100000);
+    writeFileSync(file, data);
+
+    const { stderr, status } = await spawnBashAsync(`cat ${file} >&2`);
+    expect(status).toBe(0);
+    expect(stderr.length).toBe(100000);
+    expect(stderr).toEqual(data);
+  });
+  // ---------------------------------------------------------------------------
 });

@@ -37,7 +37,7 @@ const getInstallerMetadata = (installerFilePath = INSTALLER_FILE) => {
 export const getCompileTimeVariable = (
   key: string,
   installerFilePath = INSTALLER_FILE
-) => {
+): string | undefined => {
   return getInstallerMetadata(installerFilePath).variables[key];
 };
 
