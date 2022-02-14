@@ -1,6 +1,6 @@
 import MockAdapter from "axios-mock-adapter";
 import axios from "axios";
-import { getMetadataObject } from "../lib/cloudMetadata";
+import { getCustomMetadata } from "../lib/cloudMetadata";
 const axiosMock = new MockAdapter(axios);
 
 export type foo = {
@@ -20,7 +20,7 @@ describe("cloud metadata tests", () => {
   });
 
   it("get user data - no metadata", async () => {
-    const result = await getMetadataObject<foo>();
+    const result = await getCustomMetadata<foo>();
     expect(result).toEqual(undefined);
   });
 
@@ -33,7 +33,7 @@ describe("cloud metadata tests", () => {
       )
       .reply(200, base64data);
 
-    const result = await getMetadataObject<foo>();
+    const result = await getCustomMetadata<foo>();
     expect(result).toEqual(userData);
   });
 
@@ -45,7 +45,7 @@ describe("cloud metadata tests", () => {
       .onGet(`http://169.254.169.254/latest/user-data`)
       .reply(200, userData);
 
-    const result = await getMetadataObject<foo>();
+    const result = await getCustomMetadata<foo>();
     expect(result).toEqual(userData);
   });
 });

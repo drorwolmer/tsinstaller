@@ -3,7 +3,7 @@ import * as fs from "fs";
 
 const REQUEST_TIMEOUT = 10 * 1000;
 
-export const awsMetadata = async <T>() => {
+export const fetchAwsCustomMetadata = async <T>() => {
   try {
     const token = await axios.put<string>(
       `http://169.254.169.254/latest/api/token`,
@@ -32,7 +32,7 @@ export const awsMetadata = async <T>() => {
   }
 };
 
-export const azureMetadata = async <T>() => {
+export const fetchAzureCustomMetadata = async <T>() => {
   try {
     if (!fs.existsSync(`/var/lib/waagent/CustomData`)) {
       return undefined;
@@ -50,7 +50,7 @@ export const azureMetadata = async <T>() => {
   }
 };
 
-export const gcpMetadata = async <T>() => {
+export const fetchGcpCustomMetadata = async <T>() => {
   let response;
   try {
     response = await axios.get<string>(
@@ -69,18 +69,18 @@ export const gcpMetadata = async <T>() => {
   }
 };
 
-export const getMetadataObject = async <T>() => {
-  const awsData = await awsMetadata<T>();
+export const getCustomMetadata = async <T>() => {
+  const awsData = await fetchAwsCustomMetadata<T>();
   if (awsData) {
     return awsData;
   }
 
-  const azureData = await azureMetadata<T>();
+  const azureData = await fetchAzureCustomMetadata<T>();
   if (azureData) {
     return azureData;
   }
 
-  const gcpData = await gcpMetadata<T>();
+  const gcpData = await fetchGcpCustomMetadata<T>();
   if (gcpData) {
     return gcpData;
   }
