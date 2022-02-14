@@ -29,8 +29,6 @@ export const awsMetadata = async <T>(schemaValidator: ValidateFunction) => {
 
     if (schemaValidator(response.data)) {
       return response.data;
-    } else {
-      console.log("false" + JSON.stringify(schemaValidator.errors));
     }
 
     return undefined;
