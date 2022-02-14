@@ -5,7 +5,7 @@ const REQUEST_TIMEOUT = 10 * 1000;
 
 export const fetchAwsCustomMetadata = async <T>() => {
   try {
-    const token = await axios.put<string>(
+    const tokenResponse = await axios.put<string>(
       `http://169.254.169.254/latest/api/token`,
       {},
       {
@@ -21,7 +21,7 @@ export const fetchAwsCustomMetadata = async <T>() => {
       {
         timeout: REQUEST_TIMEOUT,
         headers: {
-          "X-aws-ec2-metadata-token": token.data,
+          "X-aws-ec2-metadata-token": tokenResponse.data,
         },
       }
     );
