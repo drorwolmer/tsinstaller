@@ -70,17 +70,17 @@ export const fetchGcpCustomMetadata = async <T>() => {
 };
 
 export const getCustomMetadata = async <T>() => {
-  const awsData = await fetchAwsCustomMetadata<T>();
+  const [awsData, azureData, gcpData] = await Promise.all([
+    fetchAwsCustomMetadata<T>(),
+    fetchAzureCustomMetadata<T>(),
+    fetchGcpCustomMetadata<T>(),
+  ]);
   if (awsData) {
     return awsData;
   }
-
-  const azureData = await fetchAzureCustomMetadata<T>();
   if (azureData) {
     return azureData;
   }
-
-  const gcpData = await fetchGcpCustomMetadata<T>();
   if (gcpData) {
     return gcpData;
   }
