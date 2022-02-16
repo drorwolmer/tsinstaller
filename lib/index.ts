@@ -8,3 +8,4 @@ export * from "./compile";
 export * from "./utils";
 export * from "./envFile";
 export * from "./types";
+export * from "./cloudMetadata";
