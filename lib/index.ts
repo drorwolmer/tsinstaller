@@ -9,3 +9,4 @@ export * from "./utils";
 export * from "./envFile";
 export * from "./types";
 export * from "./cloudMetadata";
+export * from "./patchedHttpsProxyAgent";

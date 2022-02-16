@@ -4,7 +4,7 @@
   "main": "index.js",
   "license": "MIT",
   "dependencies": {
-    "tsinstaller": "https://github.com/drorwolmer/tsinstaller#0.0.29"
+    "tsinstaller": "https://github.com/drorwolmer/tsinstaller#0.0.32"
   },
   "devDependencies": {
     "@types/jest": "^27.0.2",
