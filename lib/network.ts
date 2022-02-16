@@ -3,10 +3,14 @@ import { InstallerStepFn } from "./types";
 import { sleep, zip } from "./utils";
 import Table from "cli-table";
 import clc from "cli-color";
-import createHttpsProxyAgent, { HttpsProxyAgent } from "https-proxy-agent";
-import createHttpProxyAgent, { HttpProxyAgent } from "http-proxy-agent";
+import { HttpsProxyAgentOptions } from "https-proxy-agent";
+import { HttpProxyAgent } from "http-proxy-agent";
 import { URL } from "url";
 import * as net from "net";
+import {
+  getRootCertificates,
+  PatchedHttpsProxyAgent,
+} from "./patchedHttpsProxyAgent";
 
 export const WEB_REQUEST_TIMEOUT_SECONDS = 3;
 export type RequiredUrl = {
@@ -25,6 +29,7 @@ export type UrlResult = {
 export type GetUrlStatusConfig = {
   proxyUrl?: string;
   timeoutSeconds?: number;
+  customRootCertificates?: string[];
 };
 
 export const getUrlStatus = async (
@@ -33,11 +38,13 @@ export const getUrlStatus = async (
 ) => {
   const timeoutSeconds = config.timeoutSeconds || WEB_REQUEST_TIMEOUT_SECONDS;
 
-  let httpProxyAgent: HttpProxyAgent | undefined;
-  let httpsProxyAgent: HttpsProxyAgent | undefined;
+  let httpProxyAgent: HttpProxyAgent | undefined = undefined;
+  let httpsProxyAgent: PatchedHttpsProxyAgent | undefined = undefined;
+
   if (config.proxyUrl) {
     const parsedUrl = new URL(config.proxyUrl);
-    httpsProxyAgent = createHttpsProxyAgent({
+
+    const proxyAgentConfig: HttpsProxyAgentOptions = {
       protocol: parsedUrl.protocol,
       host: parsedUrl.hostname,
       port: parsedUrl.port,
@@ -45,16 +52,16 @@ export const getUrlStatus = async (
         ? parsedUrl.username + ":" + parsedUrl.password
         : undefined,
       timeout: timeoutSeconds * 1000,
-    });
-    httpProxyAgent = createHttpProxyAgent({
-      protocol: parsedUrl.protocol,
-      host: parsedUrl.hostname,
-      port: parsedUrl.port,
-      auth: parsedUrl.username
-        ? parsedUrl.username + ":" + parsedUrl.password
-        : undefined,
-      timeout: timeoutSeconds * 1000,
-    });
+    };
+
+    if (config.customRootCertificates) {
+      proxyAgentConfig.ca = await getRootCertificates(
+        config.customRootCertificates
+      );
+    }
+
+    httpProxyAgent = new HttpProxyAgent(proxyAgentConfig);
+    httpsProxyAgent = new PatchedHttpsProxyAgent(proxyAgentConfig);
   }
 
   const res = await axios.get(url, {
