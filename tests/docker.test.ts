@@ -204,7 +204,7 @@ describe("Docker tests", () => {
       .spyOn(subprocess, "spawnAsync")
       .mockImplementation(async () => {
         return {
-          cmdline: "docker-compose up -d",
+          cmdline: "docker-compose up -d --remove-orphans",
           status: 0,
           stderr: "",
           stdout: "OK",
@@ -223,7 +223,7 @@ describe("Docker tests", () => {
       status: 0,
       stderr: "",
       stdout: "OK",
-      cmdline: "docker-compose up -d",
+      cmdline: "docker-compose up -d --remove-orphans",
     });
 
     expect(spawnAsyncMock).toBeCalledWith(

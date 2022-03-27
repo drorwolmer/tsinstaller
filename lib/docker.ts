@@ -169,7 +169,6 @@ export const dockerComposeUp = async (
 ): Promise<spawnAsyncResult> => {
   // Either have ["-f foo", "-f bar"] or []
   const composeFilesFlag = options.composeFiles?.map((v) => `-f ${v}`) || [];
-  const extraParams = options.extraComposeOptions || [];
   let env: NodeJS.ProcessEnv | undefined = undefined;
   if (options.temporaryDir) {
     env = { ...process.env, TMPDIR: options.temporaryDir };
@@ -177,7 +176,9 @@ export const dockerComposeUp = async (
 
   return spawnAsync(
     "docker-compose",
-    composeFilesFlag.concat(["up", "-d"]).concat(extraParams),
+    composeFilesFlag
+      .concat(["up", "-d"])
+      .concat(options.extraComposeOptions || []),
     {
       cwd: options.projectDirectory,
       env,
