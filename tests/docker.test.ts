@@ -199,6 +199,42 @@ describe("Docker tests", () => {
     });
   });
 
+  it("dockerComposeUp sanity, extra params", async () => {
+    const spawnAsyncMock = jest
+      .spyOn(subprocess, "spawnAsync")
+      .mockImplementation(async () => {
+        return {
+          cmdline: "docker-compose up -d --remove-orphans",
+          status: 0,
+          stderr: "",
+          stdout: "OK",
+        };
+      });
+
+    const res = await dockerComposeUpStep({
+      projectDirectory: "/tmp/foo",
+      composeFiles: ["docker-compose.yml"],
+      extraComposeOptions: ["--remove-orphans"],
+    })();
+
+    expect(res.success).toBeTruthy();
+    expect(res.successText).toEqual("OK");
+    expect(res.data).toEqual({
+      status: 0,
+      stderr: "",
+      stdout: "OK",
+      cmdline: "docker-compose up -d --remove-orphans",
+    });
+
+    expect(spawnAsyncMock).toBeCalledWith(
+      "docker-compose",
+      ["-f docker-compose.yml", "up", "-d", "--remove-orphans"],
+      {
+        cwd: "/tmp/foo",
+      }
+    );
+  });
+
   it("dockerComposeUp sanity, multiple compose files", async () => {
     const spawnAsyncMock = jest
       .spyOn(subprocess, "spawnAsync")
