@@ -1,5 +1,5 @@
 import axios from "axios";
-import * as fs from "fs";
+import fs from "fs";
 
 const REQUEST_TIMEOUT = 10 * 1000;
 
@@ -37,10 +37,9 @@ export const fetchAzureCustomMetadata = async <T>() => {
     if (!fs.existsSync(`/var/lib/waagent/CustomData`)) {
       return undefined;
     }
-    const content = await fs.promises.readFile(
-      `/var/lib/waagent/CustomData`,
-      "base64"
-    );
+    const content = await fs.promises.readFile(`/var/lib/waagent/CustomData`, {
+      encoding: "utf-8",
+    });
     const buff = Buffer.from(content, "base64");
     const userdata = JSON.parse(buff.toString("utf-8")) as T;
 
