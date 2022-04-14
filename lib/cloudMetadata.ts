@@ -1,7 +1,7 @@
 import axios from "axios";
 import fs from "fs";
 
-const REQUEST_TIMEOUT = 10 * 1000;
+const REQUEST_TIMEOUT = 2 * 1000;
 
 export const fetchAwsCustomMetadata = async <T>() => {
   try {
