@@ -1,7 +1,11 @@
-/** @type {import('ts-jest/dist/types').InitialOptionsTsJest} */
+/** @type {import('ts-jest/dist/types').JestConfigWithTsJest} */
 module.exports = {
-  testPathIgnorePatterns: ["/node_modules/", "example_project/"],
   preset: "ts-jest",
+  transform: {
+    "^.+\\.(ts|tsx)?$": "ts-jest",
+    "^.+\\.(js|jsx)$": "babel-jest",
+  },
+  transformIgnorePatterns: ["/node_modules/(?!ora)/.*"],
   restoreMocks: true,
   testEnvironment: "node",
 };

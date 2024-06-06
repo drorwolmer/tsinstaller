@@ -3,7 +3,7 @@ import {
   RequiredUrl,
   UrlResult,
   verifyAllUrls,
-  verifyUrlReady
+  verifyUrlReady,
 } from "../lib/network";
 import * as network from "../lib/network";
 import axios, { AxiosError } from "axios";
@@ -168,7 +168,7 @@ describe("URL tests", () => {
       {
         success: false,
         status: undefined,
-        text: "self signed certificate in certificate chain",
+        text: "self-signed certificate in certificate chain",
         requiredUrl: requiredUrls[3],
         axiosError: expect.anything(),
       },
@@ -401,4 +401,3 @@ describe("URL tests", () => {
     expect(res.success).toBeFalsy();
   });
 });
-

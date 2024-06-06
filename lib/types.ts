@@ -1,4 +1,4 @@
-import { Ora } from "ora";
+import { Ora } from "ora-classic";
 export interface EnvMapping {
   [key: string]: string;
 }

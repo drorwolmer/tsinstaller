@@ -1,4 +1,4 @@
-import ora from "ora";
+import ora from "ora-classic";
 import { cyan, bold, green, red } from "cli-color";
 import { Step, StepResult, InstallerConfiguration } from "./types";
 import logSymbols from "log-symbols";

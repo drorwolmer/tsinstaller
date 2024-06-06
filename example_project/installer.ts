@@ -16,7 +16,7 @@ import {
   InstallerStepFn,
   getCompileTimeVariable,
   setEnvFileStep,
-} from "tsinstaller";
+} from "../lib";
 
 const PART__DOCKER_IMAGES = "docker_images";
 const PART__INSTALL_FILES = "install_files";
