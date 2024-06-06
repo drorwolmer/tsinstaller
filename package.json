@@ -29,7 +29,7 @@
     "eslint-config-prettier": "^9.1.0",
     "http-proxy-agent": "^5.0.0",
     "https-proxy-agent": "^5.0.0",
-    "log-symbols": "6.0.0",
+    "log-symbols": "4.1.0",
     "moment": "^2.29.1",
     "ora": "8.0.1",
     "ora-classic": "^5.4.2",
