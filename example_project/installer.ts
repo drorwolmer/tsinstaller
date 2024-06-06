@@ -16,7 +16,7 @@ import {
   InstallerStepFn,
   getCompileTimeVariable,
   setEnvFileStep,
-} from "../lib";
+} from "tsinstaller";
 
 const PART__DOCKER_IMAGES = "docker_images";
 const PART__INSTALL_FILES = "install_files";
@@ -57,8 +57,8 @@ export const compileSteps: InstallerFn = async (
 ) => {
   // ===============================================================
   console.info("[+] Saving docker images to file");
-  await saveDockerImagesToFile(__dirname, TMP_DOCKER_TAR);
-  await installer.addFile(TMP_DOCKER_TAR, PART__DOCKER_IMAGES);
+  // await saveDockerImagesToFile(__dirname, TMP_DOCKER_TAR);
+  // await installer.addFile(TMP_DOCKER_TAR, PART__DOCKER_IMAGES);
   // ===============================================================
   console.info("[+] Adding install files to installer...");
   await createArchive(TMP_DOCKER_TAR, __dirname, ["docker-compose.yml"]);
@@ -70,6 +70,23 @@ export const installSteps = (): Step[] => [
     title: "Verifying root permissions",
     f: verifyRoot,
   },
+  {
+    title: "Verifying network prerequesties",
+    f: verifyAllUrls(REQUIRED_URLS, {
+      timeoutSeconds: 10,
+    }),
+  },
+  {
+    title: "Extracting installation files",
+    f: untar(PART__INSTALL_FILES, "/tmp/tsinstaller_example/"),
+  },
+  {
+    title: "Set env variables",
+    f: setEnvFileStep("/tmp/tsinstaller_example/.env.txt", {
+      ENVIRONMENT: getCompileTimeVariable("ENVIRONMENT") || "",
+      GIT_COMMIT: getCompileTimeVariable("GIT_COMMIT") || "",
+    }),
+  },
   { title: "Verifying Docker version", f: verifyDockerVersion("19.3.1") },
   {
     title: "Verifying docker-compose version",
@@ -79,21 +96,8 @@ export const installSteps = (): Step[] => [
     title: "Verify Docker service is enabled",
     f: verifyLinuxServiceEnabled("docker"),
   },
-  {
-    title: "Verifying network prerequesties",
-    f: verifyAllUrls(REQUIRED_URLS),
-  },
+
   { title: "Loading Docker Images", f: loadDockerImages(PART__DOCKER_IMAGES) },
-  {
-    title: "Extracting installation files",
-    f: untar(PART__INSTALL_FILES, "/tmp/tsinstaller_example/"),
-  },
-  {
-    title: "Set env variables",
-    f: setEnvFileStep("/tmp/tsinstaller_example/.env.txt", {
-      FOO: getCompileTimeVariable("FOO") || "bar",
-    }),
-  },
 ];
 
 if (require.main === module) {
